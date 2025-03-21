@@ -1,0 +1,21 @@
+# questions
+template_name:
+  type: str
+  default: "recipe-amazing"
+  help: "The name of your Application Template"
+
+template_description:
+  type: str
+  default: |
+    This is an amazing application template that does wonderful things.
+    * Feature 1
+  help: "A Markdown-compatible description of your Application Template"
+
+copyright_year:
+  type: int
+  default: 2025
+  help: "The current year to register copyright properly in the license file"
+  
+
+_subdirectory: template
+_answers_file: .datarobot/base-answers.yml

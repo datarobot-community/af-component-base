@@ -1,0 +1,57 @@
+description: |-
+  Federalized release for {{ template_name }}
+
+  Reference
+  https://datarobot.atlassian.net/wiki/spaces/Ignite/pages/5618761738/Distributed+Release+Metadata+-+RELEASE.yaml
+  https://dev-docs.drdev.io/release/branches/RELEASE.yaml.html
+
+  This is filtered out when an application template is released via the release automation
+
+production: true
+
+tags:
+  - name: release/{version}-branchpoint
+    value: Branchpoint tag for {version} - via RELEASE.yaml
+
+# trivy-policy: ./trivy-ignore.rego
+
+
+# pins:
+#   - file: VERSION
+#     command: sed -i s/master-dev/{version}/
+#
+#   - file: TAG
+#     value: {version}
+#
+# post_branch_cut_pipelines:
+#   - endpoint: /path/to/job
+#     host: https://ci5.devinfra.drdev.io
+#     service: jenkins
+#     variables:
+#       version: {version}
+#
+# performance-tests:
+#   - service: shrink
+#     host: http://shrink.drdev.io
+#     endpoint: mbtest
+#     variables:
+#       description: MB RELEASE.yaml {version} test
+#       tags:
+#         - {version}
+#       predefined_dataset: variety_coverage.yaml
+#
+#   - service: shrink
+#     host: http://shrink.drdev.io
+#     endpoint: cicada
+#     variables:
+#       description: Cicada RELEASE.yaml {version} test
+#       test_options:
+#         cicada_sha: origin/master
+#         suit_name: webserver_test.py
+#       cluster_options:
+#         launch_type: aws
+#         artifact:
+#           artifact_type: new
+#           datarobot_branch: origin/master
+#         options:
+#           platform: dockerized
