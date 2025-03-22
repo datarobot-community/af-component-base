@@ -15,7 +15,13 @@ copyright_year:
   type: int
   default: 2025
   help: "The current year to register copyright properly in the license file"
-  
+
+github_owner_group:
+  type: str
+  default: "@datarobot/customer-engineering"
+  help: "The GitHub team or username that will own the repository for this application template"
+
+
 
 _subdirectory: template
 _answers_file: .datarobot/base-answers.yml
