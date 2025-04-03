@@ -1,4 +1,4 @@
-# ts-template-base
+# af-component-base
 
 The base template for [App Framework Studio](https://github.com/datarobot/app-framework-studio)
 
