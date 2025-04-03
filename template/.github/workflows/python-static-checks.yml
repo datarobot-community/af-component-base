@@ -1,3 +1,4 @@
+---
 name: python-static-checks
 
 on: [push]
