@@ -1,0 +1,11 @@
+# File system entries to exclude from copying to the `datarobot-community` version of the repository.
+excluded_entries:
+  - .ci/
+  - .datarobot/
+  - .harness/
+  - CODEOWNERS
+  - DRCODEOWNERS
+  - Jenkinsfile
+  - RELEASE.yaml
+  - pipelineController.yaml
+  - tests/

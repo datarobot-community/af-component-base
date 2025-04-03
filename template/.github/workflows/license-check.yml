@@ -1,0 +1,13 @@
+name: Check License Header
+
+on: [push]
+
+jobs:
+  license-header-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check License Header
+        uses: apache/skywalking-eyes/header@main
+        with:
+          config: .github/.licenserc.yaml.jinja
