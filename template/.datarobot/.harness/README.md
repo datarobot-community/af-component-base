@@ -9,7 +9,6 @@ Below is a list of the resources included in this directory:
 | Resource                                   | Purpose                                   |
 |--------------------------------------------|-------------------------------------------|
 | `.datarobot/.harness/pipeline-release.yml` | Harness CI/CD release configuration.      |
-| `.datarobot/.harness/inputSet-release.yml` | Harness CI/CD release pipeline input set. |
 
 ---
 
