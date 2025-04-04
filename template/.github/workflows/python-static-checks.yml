@@ -1,5 +1,5 @@
 ---
-name: python-static-checks
+name: Python Static Checks
 
 on:
   push:
