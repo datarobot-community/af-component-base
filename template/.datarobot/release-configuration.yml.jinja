@@ -5,13 +5,15 @@ community-repo: {{ community_template_name }}
 # File system entries to exclude from copying to the `datarobot-community` version of the repository.
 exclude:
   - .ci/
+  - .cicd/
   - .datarobot/
   - .github/.licenserc.yaml
   - .github/CODEOWNERS
-  - .github/license-check.yml
+  - .github/workflows/license-check.yml
   - .harness/
   - CODEOWNERS
   - DRCODEOWNERS
   - RELEASE.yaml
+  - Jenkinsfile
   - pipelineController.yaml
   - tests/

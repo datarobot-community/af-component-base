@@ -1,0 +1,13 @@
+pipeline:
+  name: communityRelease
+  identifier: communityRelease
+  projectIdentifier: {{ template_name }}
+  orgIdentifier: CFDS
+  tags: {}
+  stages:
+    - stage:
+        name: communityRelease
+        identifier: communityRelease
+        template:
+          templateRef: org.communityRelease
+          versionLabel: v1
