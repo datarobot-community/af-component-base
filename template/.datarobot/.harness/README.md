@@ -6,9 +6,10 @@ This directory (`.datarobot/.harness/`) contains Harness configuration files and
 #### 🛠 **Resources**
 Below is a list of the resources included in this directory:
 
-| Resource                                   | Purpose                                   |
-|--------------------------------------------|-------------------------------------------|
-| `.datarobot/.harness/pipeline-release.yml` | Harness CI/CD release configuration.      |
+| Resource                                   | Purpose                                                       |
+|--------------------------------------------|---------------------------------------------------------------|
+| `.datarobot/.harness/pipeline-release.yml` | Harness CI/CD release configuration.                          |
+| `.datarobot/.harness/trigger-release.yml`  | Harness CI/CD trigger configuration for the release pipeline. |
 
 ---
 
