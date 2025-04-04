@@ -1,7 +1,10 @@
 ---
 name: python-static-checks
 
-on: [push]
+on:
+  push:
+    paths:
+      - '**/*.py'
 
 jobs:
   python-static-checks:
