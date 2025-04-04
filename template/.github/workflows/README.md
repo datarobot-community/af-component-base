@@ -10,6 +10,7 @@ Below is a list of the workflows included in this repository:
 |----------------------------|-------------------------------------------------------------------|
 | `license-check.yml`        | Check and fix license headers and resolve dependencies' licenses. |
 | `python-static-checks.yml` | Run Ruff linter and formatter, and MyPy static type checks.       |
+| `yaml-format.yml`          | Run YAML linter tool (yamlfmt).                                   |
 
 ---
 
