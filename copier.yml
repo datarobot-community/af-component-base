@@ -32,6 +32,10 @@ github_owner_group:
   default: "@datarobot/customer-engineering"
   help: "The GitHub team or username that will own the repository for this application template"
 
+harness_org_id:
+  type: str
+  default: "CFDS"
+  help: "Harness organization where project-related tasks will be executed"
 
 
 _subdirectory: template

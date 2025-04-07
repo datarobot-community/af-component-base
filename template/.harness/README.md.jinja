@@ -1,0 +1,45 @@
+### **Harness CI/CD Configurations**
+
+#### 📌 **Overview**
+
+This directory (`.harness/`) contains Harness configuration files and support tooling.
+
+#### 🛠 **Resources**
+
+Below is a list of the resources included in this directory:
+
+| Resource                             | Purpose                                                                            |
+|--------------------------------------|------------------------------------------------------------------------------------|
+| `.harness/pipeline-release.yml`      | Harness CI/CD release configuration.                                               |
+| `.harness/release-configuration.yml` | Configuration for the Harness release pipeline (to the `datarobot-community` org). |
+| `.harness/trigger-release.yml`       | Harness CI/CD trigger configuration for the release pipeline.                      |
+
+See [pipelines](https://developer.harness.io/docs/platform/pipelines/) to find out more about Harness pipelines.
+
+---
+
+#### ⚙️ **Setting up Harness release-to-datarobot-community pipeline**
+
+You can set up Harness pipelines once you have `.harness/` on the default branch of your repository:
+
+* Copy `projectIdentifier` value from `.harness/pipeline-release.yml` for the future project name;
+* Create a new project
+  on [Harness](https://app.harness.io/ng/account/oP3BKzKwSDe_4hCFYw_UWA/module/ci/orgs/{{ harness_org_id }}/projects) using the name
+  from step **1**;
+* Navigate to the [Pipelines](https://app.harness.io/ng/account/oP3BKzKwSDe_4hCFYw_UWA/module/ci/orgs/{{ harness_org_id }}/projects/{{ private_repo_name }}/pipelines) section and click a down-arrow symbol on the `Create a Pipeline button`;
+* Click `Import from Git`;
+* Select `Third-party Git provider`. Choose a Git connector, your repository - `{{ private_repo_name }}`, and path to
+  the release configuration - `.harness/pipeline-release.yml`;
+* Click `Import` to complete the setup process;
+
+This will create a pipeline that creates a tag in the corresponding `datarobot-community` GitHub repository.\
+
+To make it work automatically, you will need to add a trigger:
+
+* Click `Triggers` at the top;
+* Click `New Trigger` and select `GitHub`;
+* Switch to a YAML-view mode by clicking `YAML` at the top;
+* Paste a YAML configuration from `.harness/trigger-release.yml` and click `Create Trigger` at the bottom of the page;
+
+Now you should have a working pipeline that creates a tag in the corresponding repo of `datarobot-community` GitHub
+org once you create such in the private `datarobot` org repo.
