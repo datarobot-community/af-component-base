@@ -8,7 +8,7 @@ trigger:
   tags: {}
   encryptedWebhookSecretIdentifier: ""
   orgIdentifier: CFDS
-  projectIdentifier: {{ template_name }}
+  projectIdentifier: {{ private_repo_name }}
   pipelineIdentifier: communityRelease
   source:
     type: Webhook
@@ -24,7 +24,7 @@ trigger:
               operator: Regex
               value: (main|release\/.+)
           headerConditions: []
-          repoName: {{ template_name }}
+          repoName: {{ private_repo_name }}
           actions:
             - Publish
   pipelineBranchName: <+trigger.branch>

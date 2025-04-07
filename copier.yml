@@ -5,10 +5,15 @@ template_name:
   default: "recipe-amazing"
   help: "The name of your Application Template"
 
-community_template_name:
+oss_repo_name:
   type: str
   default: "recipe-amazing-community"
   help: "The name of your Application Template in the `datarobot-community` GitHub org"
+
+private_repo_name:
+  type: str
+  default: "recipe-amazing-internal"
+  help: "The name of your Application Template in the `datarobot` GitHub org"
 
 template_description:
   type: str
@@ -30,4 +35,4 @@ github_owner_group:
 
 
 _subdirectory: template
-_answers_file: .datarobot/base-answers.yml
+_answers_file: .datarobot/answers/base.yml
