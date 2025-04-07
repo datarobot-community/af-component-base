@@ -34,7 +34,7 @@ github_owner_group:
 
 harness_org_id:
   type: str
-  default: "CFDS"
+  default: "No_Code_Apps"
   help: "Harness organization where project-related tasks will be executed"
 
 
