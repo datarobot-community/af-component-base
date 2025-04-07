@@ -1,15 +1,18 @@
 ### **Harness CI/CD Configurations**
 
 #### 📌 **Overview**
-This directory (`.datarobot/.harness/`) contains Harness configuration files and support tooling.
+
+This directory (`.harness/`) contains Harness configuration files and support tooling.
 
 #### 🛠 **Resources**
+
 Below is a list of the resources included in this directory:
 
-| Resource                                   | Purpose                                                       |
-|--------------------------------------------|---------------------------------------------------------------|
-| `.datarobot/.harness/pipeline-release.yml` | Harness CI/CD release configuration.                          |
-| `.datarobot/.harness/trigger-release.yml`  | Harness CI/CD trigger configuration for the release pipeline. |
+| Resource                             | Purpose                                                                            |
+|--------------------------------------|------------------------------------------------------------------------------------|
+| `.harness/pipeline-release.yml`      | Harness CI/CD release configuration.                                               |
+| `.harness/release-configuration.yml` | Configuration for the Harness release pipeline (to the `datarobot-community` org). |
+| `.harness/trigger-release.yml`       | Harness CI/CD trigger configuration for the release pipeline.                      |
 
 ---
 

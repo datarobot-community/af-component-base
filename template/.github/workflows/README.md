@@ -1,9 +1,12 @@
 ### **GitHub Workflows**
 
 #### 📌 **Overview**
-This directory (`.github/workflows/`) contains GitHub Actions workflow definitions that automate various tasks such as CI/CD, releases, and repository synchronization.
+
+This directory (`.github/workflows/`) contains GitHub Actions workflow definitions that automate various tasks such as
+CI/CD, releases, and repository synchronization.
 
 #### ⚙️ **Workflows**
+
 Below is a list of the workflows included in this repository:
 
 | Workflow File              | Purpose                                                           |
