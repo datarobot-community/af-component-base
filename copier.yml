@@ -1,8 +1,19 @@
+---
 # questions
 template_name:
   type: str
   default: "recipe-amazing"
   help: "The name of your Application Template"
+
+oss_repo_name:
+  type: str
+  default: "recipe-amazing-community"
+  help: "The name of your Application Template in the `datarobot-community` GitHub org"
+
+private_repo_name:
+  type: str
+  default: "recipe-amazing-internal"
+  help: "The name of your Application Template in the `datarobot` GitHub org"
 
 template_description:
   type: str
@@ -21,7 +32,11 @@ github_owner_group:
   default: "@datarobot/customer-engineering"
   help: "The GitHub team or username that will own the repository for this application template"
 
+harness_org_id:
+  type: str
+  default: "No_Code_Apps"
+  help: "Harness organization where project-related tasks will be executed"
 
 
 _subdirectory: template
-_answers_file: .datarobot/base-answers.yml
+_answers_file: .datarobot/answers/base.yml

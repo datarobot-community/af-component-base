@@ -1,0 +1,14 @@
+---
+pipeline:
+  name: communityRelease
+  identifier: communityRelease
+  projectIdentifier: {{ private_repo_name }}
+  orgIdentifier: {{ harness_org_id }}
+  tags: {}
+  stages:
+    - stage:
+        name: communityRelease
+        identifier: communityRelease
+        template:
+          templateRef: org.communityRelease
+          versionLabel: v0.1.0
