@@ -16,5 +16,5 @@ To start for a repo:
 
 To update
 
-`uvx copier update -a .datarobot/base-answers.yml -A`
+`uvx copier update -a .datarobot/answers/base.yml -A`
 
