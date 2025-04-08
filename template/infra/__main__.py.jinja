@@ -1,0 +1,20 @@
+import os
+from pathlib import Path
+
+import pulumi
+import pulumi_datarobot as datarobot
+
+project_dir = Path(__file__).parent.parent
+
+if use_case_id := os.environ.get("DATAROBOT_DEFAULT_USE_CASE"):
+    pulumi.info(f"Using existing use case '{use_case_id}'")
+
+    use_case = datarobot.UseCase.get(
+        id=use_case_id,
+        resource_name="{{template_name}} [PRE-EXISTING]",
+    )
+else:
+    use_case = datarobot.UseCase(
+        resource_name=f"{{template_name}} [{project_dir.name}]",
+        description="{{template_description}}",
+    )
