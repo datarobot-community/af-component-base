@@ -11,4 +11,4 @@ jobs:
       - name: License Header Check
         uses: apache/skywalking-eyes/header@main
         with:
-          config: .github/.licenserc.yaml.jinja
+          config: .github/.licenserc.yaml
