@@ -2,7 +2,7 @@
 pipeline:
   name: communityRelease
   identifier: communityRelease
-  projectIdentifier: {{ private_repo_name }}
+  projectIdentifier: {{ private_repo_name | replace("-","") }}
   orgIdentifier: {{ harness_org_id }}
   tags: {}
   stages:
