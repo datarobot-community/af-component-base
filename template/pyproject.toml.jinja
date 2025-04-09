@@ -10,6 +10,12 @@ dependencies = []
 infra = { path = "./infra" }
 
 [dependency-groups]
+dev = [
+    "mypy>=1.15.0",
+    "ruff>=0.11.4",
+    "pytest>=8.3.5",
+]
+
 infra = [
     "datarobot-pulumi-utils>=0.0.2.post2",
     "pulumi>=3.160.0",
