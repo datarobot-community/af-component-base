@@ -1,0 +1,39 @@
+trigger:
+  name: testGitHub
+  identifier: testGitHub
+  enabled: false
+  stagesToExecute: []
+  description: ""
+  tags: {}
+  encryptedWebhookSecretIdentifier: ""
+  orgIdentifier: {{ harness_org_id }}
+  projectIdentifier: {{ private_repo_name }}
+  pipelineIdentifier: trivyScan
+  source:
+    type: Webhook
+    spec:
+      type: Github
+      spec:
+        type: PullRequest
+        spec:
+          connectorRef: account.svc_harness_git1
+          autoAbortPreviousExecutions: false
+          payloadConditions:
+            - key: changedFiles
+              operator: Equals
+              value: requirements.txt
+          headerConditions: []
+          repoName: recipe-bob
+          actions:
+            - Open
+            - Synchronize
+  inputYaml: |
+    pipeline:
+      identifier: trivyScan
+      properties:
+        ci:
+          codebase:
+            build:
+              type: branch
+              spec:
+                branch: <+trigger.branch>
