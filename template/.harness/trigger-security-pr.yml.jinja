@@ -1,7 +1,7 @@
 ---
 trigger:
-  name: triggerRelease
-  identifier: triggerRelease
+  name: github
+  identifier: github
   enabled: true
   stagesToExecute: []
   description: ""
@@ -9,22 +9,25 @@ trigger:
   encryptedWebhookSecretIdentifier: ""
   orgIdentifier: {{ harness_org_id }}
   projectIdentifier: {{ private_repo_name | replace("-","") }}
-  pipelineIdentifier: communityRelease
+  pipelineIdentifier: trivyScan
   source:
     type: Webhook
     spec:
       type: Github
       spec:
-        type: Release
+        type: PullRequest
         spec:
           connectorRef: account.svc_harness_git1
           autoAbortPreviousExecutions: false
           payloadConditions:
-            - key: <+eventPayload.release.target_commitish>
-              operator: Regex
-              value: (main|release\/.+)
+            - key: changedFiles
+              operator: Equals
+              value: requirements.txt
           headerConditions: []
-          repoName: {{ private_repo_name }}
+          repoName: recipe-bob
           actions:
-            - Publish
-  pipelineBranchName: <+trigger.branch>
+            - Open
+            - Synchronize
+  pipelineBranchName: main
+  inputSetRefs:
+    - github

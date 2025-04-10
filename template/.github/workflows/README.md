@@ -11,6 +11,7 @@ Below is a list of the workflows included in this repository:
 
 | Workflow File                  | Purpose                                                           |
 |--------------------------------|-------------------------------------------------------------------|
+| `dockerfile-lint.yml`          | Run Hadolint to check Dockerfiles for best practices.             |
 | `license-check.yml`            | Check and fix license headers and resolve dependencies' licenses. |
 | `python-static-checks.yml`     | Run Ruff linter and formatter, and MyPy static type checks.       |
 | `python-deps-install-test.yml` | Verify Python dependencies install for different Python versions. |

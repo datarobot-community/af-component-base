@@ -1,0 +1,20 @@
+---
+pipeline:
+  name: trivyScan
+  identifier: trivyScan
+  projectIdentifier: {{ private_repo_name | replace("-","") }}
+  orgIdentifier: {{ harness_org_id }}
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: {{ private_repo_name }}
+        build: <+input>
+  stages:
+    - stage:
+        name: trivyScan
+        identifier: trivyScan
+        template:
+          templateRef: org.runTrivyScan
+          versionLabel: v0.1.0
