@@ -14,13 +14,6 @@ trigger:
       spec:
         expression: 0 8 * * *
         type: UNIX
-  inputYaml: |
-    pipeline:
-      identifier: trivyScan
-      properties:
-        ci:
-          codebase:
-            build:
-              type: branch
-              spec:
-                branch: main
+  pipelineBranchName: main
+  inputSetRefs:
+    - daily
