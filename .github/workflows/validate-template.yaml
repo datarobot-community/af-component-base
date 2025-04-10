@@ -32,3 +32,10 @@ jobs:
       - name: Generate Test Project
         run: |
           copier copy . mytemplate --defaults
+
+      - name: Install go
+        uses: actions/setup-go@v5
+      - name: Install yamlfmt
+        run: go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+      - name: Run yamlfmt
+        run: yamlfmt -conf .yamlfmt.yml -lint ./mytemplate

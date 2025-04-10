@@ -1,11 +1,12 @@
 ---
-name: Python Static Checks
+name: Python Checks
 
 on:
+  push:
   pull_request:
 
 jobs:
-  python-deps-install-test:
+  python-checks:
     runs-on: ubuntu-latest
     strategy:
       matrix:
