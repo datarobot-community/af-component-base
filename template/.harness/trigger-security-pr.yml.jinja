@@ -1,7 +1,7 @@
 ---
 trigger:
-  name: GitHub
-  identifier: GitHub
+  name: github
+  identifier: github
   enabled: true
   stagesToExecute: []
   description: ""
@@ -28,13 +28,6 @@ trigger:
           actions:
             - Open
             - Synchronize
-  inputYaml: |
-    pipeline:
-      identifier: trivyScan
-      properties:
-        ci:
-          codebase:
-            build:
-              type: branch
-              spec:
-                branch: <+trigger.branch>
+  pipelineBranchName: main
+  inputSetRefs:
+    - github

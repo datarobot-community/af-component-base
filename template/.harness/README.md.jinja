@@ -8,11 +8,16 @@ This directory (`.harness/`) contains Harness configuration files and support to
 
 Below is a list of the resources included in this directory:
 
-| Resource                             | Purpose                                                                            |
-|--------------------------------------|------------------------------------------------------------------------------------|
-| `.harness/pipeline-release.yml`      | Harness CI/CD release configuration.                                               |
-| `.harness/release-configuration.yml` | Configuration for the Harness release pipeline (to the `datarobot-community` org). |
-| `.harness/trigger-release.yml`       | Harness CI/CD trigger configuration for the release pipeline.                      |
+| Resource                                      | Purpose                                                                            |
+|-----------------------------------------------|------------------------------------------------------------------------------------|
+| `.harness/pipeline-release.yml`               | Harness CI/CD release configuration.                                               |
+| `.harness/pipeline-security.yml`              | Harness CI/CD security scanning pipeline configuration.                            |
+| `.harness/release-configuration.yml`          | Configuration for the Harness release pipeline (to the `datarobot-community` org). |
+| `.harness/trigger-release.yml`                | Harness CI/CD trigger configuration for the release pipeline.                      |
+| `.harness/trigger-security-cron.yml-daily`    | Daily scheduled trigger for security scanning.                                     |
+| `.harness/trigger-security-pr.yml`            | PR-based trigger for security scanning.                                            |
+| `.harness/input-set-security-cron-daily.yml`  | Input configuration for daily security scans.                                      |
+| `.harness/input-set-security-pr.yml`          | Input configuration for PR-triggered security scans.                               |
 
 See [pipelines](https://developer.harness.io/docs/platform/pipelines/) to find out more about Harness pipelines.
 
@@ -43,3 +48,14 @@ To make it work automatically, you will need to add a trigger:
 
 Now you should have a working pipeline that creates a tag in the corresponding repo of `datarobot-community` GitHub
 org once you create such in the private `datarobot` org repo.
+
+#### ⚙️ **Setting up Security Scanning Pipelines**
+
+Similar to the release pipeline setup, you can set up security scanning pipelines:
+
+1. **Import Security Pipeline Configuration**:
+   * Follow the same steps as above but use `.harness/pipeline-security.yml` as the source
+
+2. **Set Up Security Triggers**:
+   * **For PR-based scanning**: Set up a trigger using `.harness/trigger-security-pr.yml` with corresponding input set from `.harness/input-set-security-pr.yml` (can be imported into Harness)
+   * **For daily scanning**: Configure a scheduled trigger using `.harness/trigger-security-cron.yml-daily` with input set from `.harness/input-set-security-cron-daily.yml` (can be imported into Harness)

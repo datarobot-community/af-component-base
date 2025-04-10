@@ -1,0 +1,28 @@
+---
+name: Dockerfile Lint
+
+on:
+  push:
+    paths:
+      - '**/Dockerfile'
+      - '**/Dockerfile.*'
+  pull_request:
+    paths:
+      - '**/Dockerfile'
+      - '**/Dockerfile.*'
+  workflow_dispatch:
+
+jobs:
+  hadolint:
+    name: Lint Dockerfiles
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: "**/Dockerfile*"
+          failure-threshold: error
+          format: junit
+          output-file: hadolint-results.xml

@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - '**.py'
+  workflow_dispatch:
 
 jobs:
   python-static-checks:
