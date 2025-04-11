@@ -3,7 +3,8 @@ name: "{{ template_name }}"
 runtime:
   name: python
 main: infra
-description: "{{ template_description }}"
+description: |-
+  {{ template_description }}
 config:
   pulumi:tags:
     value:
