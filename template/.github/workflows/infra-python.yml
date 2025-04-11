@@ -1,5 +1,5 @@
 ---
-name: Python Checks
+name: Python Infra Checks
 
 on:
   push:
@@ -11,7 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13"]
+    defaults:
+      run:
+        working-directory: infra
 
     steps:
       - name: Checkout repository
@@ -21,13 +24,16 @@ jobs:
       - name: Setup uv
         uses: astral-sh/setup-uv@v5
         with:
+          working-directory: infra
           python-version: ${{ matrix.python-version }}
 
       - name: Install Dependencies
+        working-directory: infra
         run: uv sync --all-extras --all-groups --dev
 
       - name: Run Static Checks
+        working-directory: infra
         run: |
-          ruff format --check .
-          ruff check .
-          mypy --pretty .
+          uv run ruff format --check .
+          uv run ruff check .
+          uv run mypy --pretty .
