@@ -5,6 +5,12 @@ on:
   push:
     paths:
       - '**.sh'
+    branches:
+      - main
+      - 'release/*'
+  pull_request:
+    paths:
+      - '**.sh'
   workflow_dispatch:
 
 jobs:
