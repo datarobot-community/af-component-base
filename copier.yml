@@ -19,7 +19,7 @@ template_description:
   type: str
   default: |
     This is an amazing application template that does wonderful things.
-    * Feature 1
+      * Feature 1
   help: "A Markdown-compatible description of your Application Template"
 
 copyright_year:

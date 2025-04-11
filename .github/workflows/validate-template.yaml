@@ -1,0 +1,42 @@
+---
+name: Validate Template
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Validate Template
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python & uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Copier
+        run: |
+          uv tool install copier
+
+      - name: Generate Test Project
+        run: |
+          copier copy . mytemplate --defaults
+
+      - name: Install go
+        uses: actions/setup-go@v5
+      - name: Install yamlfmt
+        run: go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+      - name: Run yamlfmt
+        run: yamlfmt -conf .yamlfmt.yml -lint ./mytemplate
