@@ -1,0 +1,20 @@
+---
+trigger:
+  name: daily
+  identifier: daily
+  enabled: true
+  stagesToExecute: []
+  tags: {}
+  orgIdentifier: {{ harness_org_id }}
+  projectIdentifier: {{ private_repo_name | replace("-","") }}
+  pipelineIdentifier: trivyScan
+  source:
+    type: Scheduled
+    spec:
+      type: Cron
+      spec:
+        expression: 0 8 * * *
+        type: UNIX
+  pipelineBranchName: main
+  inputSetRefs:
+    - daily

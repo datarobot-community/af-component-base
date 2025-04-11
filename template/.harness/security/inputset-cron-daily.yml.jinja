@@ -1,0 +1,15 @@
+---
+inputSet:
+  name: daily
+  identifier: daily
+  projectIdentifier: {{ private_repo_name | replace("-","") }}
+  orgIdentifier: {{ harness_org_id }}
+  pipeline:
+    identifier: trivyScan
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: main

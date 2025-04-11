@@ -1,0 +1,30 @@
+---
+trigger:
+  name: triggerRelease
+  identifier: triggerRelease
+  enabled: true
+  stagesToExecute: []
+  description: ""
+  tags: {}
+  encryptedWebhookSecretIdentifier: ""
+  orgIdentifier: {{ harness_org_id }}
+  projectIdentifier: {{ private_repo_name | replace("-","") }}
+  pipelineIdentifier: communityRelease
+  source:
+    type: Webhook
+    spec:
+      type: Github
+      spec:
+        type: Release
+        spec:
+          connectorRef: account.svc_harness_git1
+          autoAbortPreviousExecutions: false
+          payloadConditions:
+            - key: <+eventPayload.release.target_commitish>
+              operator: Regex
+              value: (main|release\/.+)
+          headerConditions: []
+          repoName: {{ private_repo_name }}
+          actions:
+            - Publish
+  pipelineBranchName: <+trigger.branch>
