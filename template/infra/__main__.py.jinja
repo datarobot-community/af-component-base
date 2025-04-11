@@ -16,5 +16,5 @@ if use_case_id := os.environ.get("DATAROBOT_DEFAULT_USE_CASE"):
 else:
     use_case = datarobot.UseCase(
         resource_name=f"{{template_name}} [{project_dir.name}]",
-        description="{{template_description}}",
+        description="""{{template_description}}""",
     )

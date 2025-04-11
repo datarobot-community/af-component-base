@@ -1,13 +1,16 @@
 [project]
 name = "{{template_name}}"
-version = "0.1.0"
-description = "{{template_description}}"
+version = "0.0.1"
+description = """
+{{template_description}}
+"""
+
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
 
-[tool.uv.sources]
-infra = { path = "./infra" }
+dependencies = [
+    "infra",
+]
 
 [dependency-groups]
 dev = [
@@ -16,8 +19,5 @@ dev = [
     "pytest>=8.3.5",
 ]
 
-infra = [
-    "datarobot-pulumi-utils>=0.0.2.post2",
-    "pulumi>=3.160.0",
-    "pulumi-datarobot>=0.8.19",
-]
+[tool.uv.sources]
+infra = { path = "infra", editable = true }

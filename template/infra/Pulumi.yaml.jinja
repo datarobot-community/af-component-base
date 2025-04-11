@@ -1,10 +1,11 @@
 ---
 name: "{{ template_name }}"
-runtime:
-  name: python
-main: infra
 description: |-
   {{ template_description }}
+runtime:
+  name: python
+  options:
+    toolchain: uv
 config:
   pulumi:tags:
     value:
