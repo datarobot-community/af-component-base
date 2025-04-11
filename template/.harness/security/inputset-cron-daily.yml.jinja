@@ -1,7 +1,7 @@
 ---
 inputSet:
-  name: inputSet-daily
-  identifier: inputSetDaily
+  name: daily
+  identifier: daily
   projectIdentifier: {{ private_repo_name | replace("-","") }}
   orgIdentifier: {{ harness_org_id }}
   pipeline:
@@ -12,4 +12,4 @@ inputSet:
           build:
             type: branch
             spec:
-              branch: <+trigger.sourceBranch>
+              branch: main

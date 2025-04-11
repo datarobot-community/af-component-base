@@ -8,16 +8,16 @@ This directory (`.harness/`) contains Harness configuration files and support to
 
 Below is a list of the resources included in this directory:
 
-| Resource                                      | Purpose                                                                            |
-|-----------------------------------------------|------------------------------------------------------------------------------------|
-| `.harness/pipeline-release.yml`               | Harness CI/CD release configuration.                                               |
-| `.harness/pipeline-security.yml`              | Harness CI/CD security scanning pipeline configuration.                            |
-| `.harness/release-configuration.yml`          | Configuration for the Harness release pipeline (to the `datarobot-community` org). |
-| `.harness/trigger-release.yml`                | Harness CI/CD trigger configuration for the release pipeline.                      |
-| `.harness/trigger-security-cron.yml-daily`    | Daily scheduled trigger for security scanning.                                     |
-| `.harness/trigger-security-pr.yml`            | PR-based trigger for security scanning.                                            |
-| `.harness/input-set-security-cron-daily.yml`  | Input configuration for daily security scans.                                      |
-| `.harness/input-set-security-pr.yml`          | Input configuration for PR-triggered security scans.                               |
+| Resource                                           | Purpose                                                                            |
+|----------------------------------------------------|------------------------------------------------------------------------------------|
+| `.harness/release-configuration.yml`               | Configuration for the Harness release pipeline (to the `datarobot-community` org). |
+| `.harness/release/pipeline.yml`                    | Harness CI/CD release configuration.                                               |
+| `.harness/release/trigger.yml`                     | Harness CI/CD trigger configuration for the release pipeline.                      |
+| `.harness/security/pipeline.yml`                   | Harness CI/CD security scanning pipeline configuration.                            |
+| `.harness/security/trigger-cron-daily.yml`         | Daily scheduled trigger for security scanning.                                     |
+| `.harness/security/trigger-pr.yml`                 | PR-based trigger for security scanning.                                            |
+| `.harness/security/inputset-cron-daily.yml`       | Input configuration for daily security scans.                                      |
+| `.harness/security/inputset-pr.yml`               | Input configuration for PR-triggered security scans.                               |
 
 See [pipelines](https://developer.harness.io/docs/platform/pipelines/) to find out more about Harness pipelines.
 
@@ -27,14 +27,14 @@ See [pipelines](https://developer.harness.io/docs/platform/pipelines/) to find o
 
 You can set up Harness pipelines once you have `.harness/` on the default branch of your repository:
 
-* Copy `projectIdentifier` value from `.harness/pipeline-release.yml` for the future project name;
+* Copy `projectIdentifier` value from `.harness/release/pipeline.yml` for the future project name;
 * Create a new project
   on [Harness](https://app.harness.io/ng/account/oP3BKzKwSDe_4hCFYw_UWA/module/ci/orgs/{{ harness_org_id }}/projects) using the name
   from step **1**;
 * Navigate to the [Pipelines](https://app.harness.io/ng/account/oP3BKzKwSDe_4hCFYw_UWA/module/ci/orgs/{{ harness_org_id }}/projects/{{ private_repo_name }}/pipelines) section and click a down-arrow symbol on the `Create a Pipeline button`;
 * Click `Import from Git`;
 * Select `Third-party Git provider`. Choose a Git connector, your repository - `{{ private_repo_name }}`, and path to
-  the release configuration - `.harness/pipeline-release.yml`;
+  the release configuration - `.harness/release/pipeline.yml`;
 * Click `Import` to complete the setup process;
 
 This will create a pipeline that creates a tag in the corresponding `datarobot-community` GitHub repository.\
@@ -44,7 +44,7 @@ To make it work automatically, you will need to add a trigger:
 * Click `Triggers` at the top;
 * Click `New Trigger` and select `GitHub`;
 * Switch to a YAML-view mode by clicking `YAML` at the top;
-* Paste a YAML configuration from `.harness/trigger-release.yml` and click `Create Trigger` at the bottom of the page;
+* Paste a YAML configuration from `.harness/release/trigger.yml` and click `Create Trigger` at the bottom of the page;
 
 Now you should have a working pipeline that creates a tag in the corresponding repo of `datarobot-community` GitHub
 org once you create such in the private `datarobot` org repo.
@@ -54,8 +54,8 @@ org once you create such in the private `datarobot` org repo.
 Similar to the release pipeline setup, you can set up security scanning pipelines:
 
 1. **Import Security Pipeline Configuration**:
-   * Follow the same steps as above but use `.harness/pipeline-security.yml` as the source
+   * Follow the same steps as above but use `.harness/security/pipeline.yml` as the source
 
 2. **Set Up Security Triggers**:
-   * **For PR-based scanning**: Set up a trigger using `.harness/trigger-security-pr.yml` with corresponding input set from `.harness/input-set-security-pr.yml` (can be imported into Harness)
-   * **For daily scanning**: Configure a scheduled trigger using `.harness/trigger-security-cron.yml-daily` with input set from `.harness/input-set-security-cron-daily.yml` (can be imported into Harness)
+   * **For PR-based scanning**: Set up a trigger using `.harness/security/trigger-pr.yml` with corresponding input set from `.harness/security/inputset-pr.yml` (can be imported into Harness)
+   * **For daily scanning**: Configure a scheduled trigger using `.harness/security/trigger-cron-daily.yml` with input set from `.harness/security/inputset-cron-daily.yml` (can be imported into Harness)
