@@ -16,8 +16,8 @@ Below is a list of the resources included in this directory:
 | `.harness/security/pipeline.yml`                   | Harness CI/CD security scanning pipeline configuration.                            |
 | `.harness/security/trigger-cron-daily.yml`         | Daily scheduled trigger for security scanning.                                     |
 | `.harness/security/trigger-pr.yml`                 | PR-based trigger for security scanning.                                            |
-| `.harness/security/input-set-cron-daily.yml`       | Input configuration for daily security scans.                                      |
-| `.harness/security/input-set-pr.yml`               | Input configuration for PR-triggered security scans.                               |
+| `.harness/security/inputset-cron-daily.yml`       | Input configuration for daily security scans.                                      |
+| `.harness/security/inputset-pr.yml`               | Input configuration for PR-triggered security scans.                               |
 
 See [pipelines](https://developer.harness.io/docs/platform/pipelines/) to find out more about Harness pipelines.
 
@@ -57,5 +57,5 @@ Similar to the release pipeline setup, you can set up security scanning pipeline
    * Follow the same steps as above but use `.harness/security/pipeline.yml` as the source
 
 2. **Set Up Security Triggers**:
-   * **For PR-based scanning**: Set up a trigger using `.harness/security/trigger-pr.yml` with corresponding input set from `.harness/security/input-set-pr.yml` (can be imported into Harness)
-   * **For daily scanning**: Configure a scheduled trigger using `.harness/security/trigger-cron-daily.yml` with input set from `.harness/security/input-set-cron-daily.yml` (can be imported into Harness)
+   * **For PR-based scanning**: Set up a trigger using `.harness/security/trigger-pr.yml` with corresponding input set from `.harness/security/inputset-pr.yml` (can be imported into Harness)
+   * **For daily scanning**: Configure a scheduled trigger using `.harness/security/trigger-cron-daily.yml` with input set from `.harness/security/inputset-cron-daily.yml` (can be imported into Harness)
