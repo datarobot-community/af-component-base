@@ -1,5 +1,5 @@
 ---
-name: "{{ template_name }}"
+name: "{{ template_code_name }}"
 description: |-
   {{ template_description }}
 runtime:
@@ -10,4 +10,4 @@ config:
   pulumi:tags:
     value:
       pulumi:template: python
-  datarobot:tracecontext: "{{ template_name }}"
+  datarobot:tracecontext: "{{ template_code_name }}"

@@ -2,8 +2,13 @@
 # questions
 template_name:
   type: str
-  default: "recipe-amazing"
+  default: "Amazing Recipe"
   help: "The name of your Application Template"
+
+template_code_name:
+  type: str
+  default: "{{ template_name|lower|replace(' ', '-') }}"
+  help: "The code friendly (lowercase, dashes/underscores instead of spaces"
 
 oss_repo_name:
   type: str
