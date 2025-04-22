@@ -11,23 +11,36 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
+"""
+Discover and load all modules in the infra directory.
+"""
+
+from infra import *  # noqa: F403
+import importlib
 from pathlib import Path
 
-import pulumi
-import pulumi_datarobot as datarobot
 
-project_dir = Path(__file__).parent.parent
+def import_infra_modules():
+    """
+    Dynamically import all top-level modules in the infra package.
+    This function is executed after the initial import from __init__.
+    """
+    infra_dir = Path(__file__).parent / "infra"
+    # Get all Python files in the infra directory
+    for file_path in infra_dir.glob("*.py"):
+        filename = file_path.name
+        if filename == "__init__.py" or filename == "__main__.py":
+            continue
+        module_name = f"infra.{filename[:-3]}"
+        # Import the module
+        module = importlib.import_module(module_name)
 
-if use_case_id := os.environ.get("DATAROBOT_DEFAULT_USE_CASE"):
-    pulumi.info(f"Using existing use case '{use_case_id}'")
+        # Import all from the module to the current namespace
+        for attr in dir(module):
+            if attr.startswith("_"):  # Skip private attributes
+                continue
+            globals()[attr] = getattr(module, attr)
 
-    use_case = datarobot.UseCase.get(
-        id=use_case_id,
-        resource_name="{{template_name}} [PRE-EXISTING]",
-    )
-else:
-    use_case = datarobot.UseCase(
-        resource_name=f"{{template_name}} [{project_dir.name}]",
-        description="""{{template_description}}""",
-    )
+
+# Execute the function to import all modules after the initial import
+import_infra_modules()
