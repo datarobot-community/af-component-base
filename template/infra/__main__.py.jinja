@@ -2,3 +2,33 @@
 Discover and load all modules in the infra directory.
 """
 from infra import *
+import os
+import importlib
+import sys
+
+
+def import_infra_modules():
+    """
+    Dynamically import all top-level modules in the infra package.
+    This function is executed after the initial import from __init__.
+    """
+    infra_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Get all Python files in the infra directory
+    for filename in os.listdir(infra_dir):
+        if filename.endswith('.py') and filename != '__init__.py' and filename != '__main__.py':
+            module_name = f"infra.{filename[:-3]}"
+            try:
+                # Import the module
+                module = importlib.import_module(module_name)
+                # Import all from the module to the current namespace
+                for attr in dir(module):
+                    if not attr.startswith('_'):  # Skip private attributes
+                        globals()[attr] = getattr(module, attr)
+            except Exception as e:
+                print(f"Error importing {module_name}: {e}")
+
+
+# Execute the function to import all modules after the initial import
+import_infra_modules()
+
