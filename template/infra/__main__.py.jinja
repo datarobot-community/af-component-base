@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Discover and load all modules in the infra directory.
+* Discover and load all modules with Pulumi resources in the infra directory.
+* Discover and validate all required features flags
 """
 
 from infra import *  # noqa: F403
 import importlib
 from pathlib import Path
+
+from datarobot_pulumi_utils.common.feature_flags import check_feature_flags
 
 
 def import_infra_modules():
@@ -41,6 +44,22 @@ def import_infra_modules():
                 continue
             globals()[attr] = getattr(module, attr)
 
+
+def check_all_feature_flags():
+    """
+    Discover and check all feature flag files in the infra directory.
+
+    See the README.md in the `feature_flags` folder for more detail and example
+    feature flag file examples.
+    """
+    infra_dir = Path(__file__).parent / "feature_flags"
+    for feature_flag_file in infra_dir.glob("*.y*ml"):
+        if feature_flag_file.is_file():
+            check_feature_flags(feature_flag_file)
+
+
+# Validate all feature flags
+check_all_feature_flags()
 
 # Execute the function to import all modules after the initial import
 import_infra_modules()
