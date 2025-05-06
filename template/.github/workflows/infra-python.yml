@@ -22,7 +22,7 @@ jobs:
 
       # Ref: https://docs.astral.sh/uv/guides/integration/github/#installation
       - name: Setup uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v6
         with:
           working-directory: infra
           python-version: ${{ matrix.python-version }}
