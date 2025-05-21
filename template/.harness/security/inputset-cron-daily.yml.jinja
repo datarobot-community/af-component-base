@@ -6,10 +6,13 @@ inputSet:
   orgIdentifier: {{ harness_org_id }}
   pipeline:
     identifier: trivyScan
-    properties:
-      ci:
-        codebase:
-          build:
-            type: branch
-            spec:
-              branch: main
+    template:
+      templateInputs:
+        properties:
+          ci:
+            codebase:
+              repoName: {{ private_repo_name }}
+              build:
+                type: branch
+                spec:
+                  branch: main

@@ -2,13 +2,9 @@
 pipeline:
   name: communityRelease
   identifier: communityRelease
+  tags: {}
+  template:
+    templateRef: org.releaseDataRobotCommunity
+    versionLabel: v0.1.0
   projectIdentifier: {{ private_repo_name | replace("-","") }}
   orgIdentifier: {{ harness_org_id }}
-  tags: {}
-  stages:
-    - stage:
-        name: communityRelease
-        identifier: communityRelease
-        template:
-          templateRef: org.communityRelease
-          versionLabel: v0.1.0
