@@ -32,6 +32,12 @@ tasks:
     cmds:
       - uv run pulumi stack init
 
+  select:
+    silent: true
+    desc: "🚂 Select a Stack"
+    cmds:
+      - uv run pulumi stack select
+
   up:
     silent: true
     aliases: [deploy]
