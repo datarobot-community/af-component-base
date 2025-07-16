@@ -45,14 +45,19 @@ def import_infra_modules():
         if filename == "__init__.py" or filename == "__main__.py":
             continue
         module_name = f"infra.{filename[:-3]}"
-        # Import the module
-        module = importlib.import_module(module_name)
+        try:
+            # Import the module
+            module = importlib.import_module(module_name)
 
-        # Import all from the module to the current namespace
-        for attr in dir(module):
-            if attr.startswith("_"):  # Skip private attributes
-                continue
-            globals()[attr] = getattr(module, attr)
+            # Import all from the module to the current namespace
+            for attr in dir(module):
+                if attr.startswith("_"):  # Skip private attributes
+                    continue
+                globals()[attr] = getattr(module, attr)
+        except ImportError as e:
+            # Skip modules that raise ImportError (e.g., due to feature flags or environment conditions)
+            print(f"Skipping module {module_name}: {e}")
+            continue
 
 
 def check_all_feature_flags():
