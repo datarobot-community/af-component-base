@@ -45,7 +45,7 @@ harness_org_id:
 include_core:
   type: bool
   default: false
-  help: "Include a `core` library package that is installable into multiple templates (Used in App Templates more than Agent or Tool Templates?"
+  help: "Include the `core` library package for multi-component recipes?"
 
 
 _subdirectory: template

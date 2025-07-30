@@ -1,7 +1,7 @@
 [project]
 name = "core"
 version = "0.1.0"
-description = "Core business logic and utilities that is brought across models, agents, and apps"
+description = "Core business logic and utilities shareable across components"
 readme = "README.md"
 authors = [
     { name = "DataRobot", email = "oss-community-management@datarobot.com" }
