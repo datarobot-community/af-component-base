@@ -42,6 +42,11 @@ harness_org_id:
   default: "No_Code_Apps"
   help: "Harness organization where project-related tasks will be executed"
 
+include_core:
+  type: bool
+  default: false
+  help: "Include the `core` library package for multi-component recipes?"
+
 
 _subdirectory: template
 _answers_file: .datarobot/answers/base.yml
