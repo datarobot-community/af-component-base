@@ -14,17 +14,16 @@
 """
 * Discover and load all modules with Pulumi resources in the infra directory.
 * Discover and validate all required features flags
+* Output specially exported variables to a configuration file
 """
 
 from infra import *  # noqa: F403
 import importlib
 from pathlib import Path
 from os import getenv
-import pulumi
-import json
 
 from datarobot_pulumi_utils.common.feature_flags import check_feature_flags
-from datarobot_pulumi_utils.pulumi.stack import PROJECT_NAME
+from datarobot_pulumi_utils.pulumi import default_collector, finalize
 
 DEFAULT_EXPORT_PATH: Path = Path(
     getenv(
@@ -68,28 +67,13 @@ def check_all_feature_flags():
             check_feature_flags(feature_flag_file)
 
 
-def export_to_json(file_path: Path = DEFAULT_EXPORT_PATH) -> None:
-    """
-    Export the current Pulumi stack outputs (exports) to a JSON file during apply.
-    """
-
-    def write_outputs(outputs_dict):
-        with file_path.open("w") as f:
-            json.dump(outputs_dict, f, indent=4, default=str)
-        return outputs_dict
-
-    # Get current stack reference to access all outputs
-    stack_ref = pulumi.StackReference(PROJECT_NAME)
-
-    # Apply the export function to all outputs
-    stack_ref.outputs.apply(write_outputs)
-
-
 # Validate all feature flags
 check_all_feature_flags()
 
 # Execute the function to import all modules after the initial import
 import_infra_modules()
 
-# Export the current stack outputs to a JSON file for use in local development
-export_to_json()
+# Export outputs using datarobot_pulumi_utils.pulumi.export to a JSON
+# file for use in local development.
+default_collector.output_path = DEFAULT_EXPORT_PATH
+finalize()
