@@ -61,7 +61,7 @@ def import_control_modules() -> None:
         filename = file_path.name
         if filename == "__init__.py" or filename == "__main__.py":
             continue
-        _import_module(file_path)
+        _import_module(filename)
 
 
 def toggle_infra_modules():
