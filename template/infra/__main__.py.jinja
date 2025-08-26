@@ -38,11 +38,11 @@ def toggle_infra_modules():
     """
     Use specialized environment variables to symlink configuration modules from the
     configurations folder into the infra directory. Environment variables follow the
-    pattern INFRA_ENABLE_<FOLDER>_<FILENAME> set to 1, True, or true to override
+    pattern INFRA_ENABLE_<FOLDER>__<FILENAME> set to 1, True, or true to override
     existing symlinks at runtime.
 
     For example, if you have configurations/llm/external_llm.py and want to use it
-    as infra/llm.py, set INFRA_ENABLE_LLM_EXTERNAL_LLM=True.
+    as infra/llm.py, set INFRA_ENABLE_LLM__EXTERNAL_LLM=True.
     """
     configurations_dir = Path(__file__).parent / "configurations"
 
