@@ -60,7 +60,7 @@ def toggle_infra_modules():
         # Check for environment variables that override the current symlink
         for config_file in config_folder.glob("*.py"):
             filename_without_ext = config_file.stem.upper()
-            env_var = f"INFRA_ENABLE_{folder_name}_{filename_without_ext}"
+            env_var = f"INFRA_ENABLE_{folder_name}__{filename_without_ext}"
 
             if getenv(env_var, "").lower() in ("1", "true"):
                 # Remove existing symlink/file if it exists
