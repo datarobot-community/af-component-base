@@ -34,48 +34,41 @@ DEFAULT_EXPORT_PATH: Path = Path(
 INFRA_DIR = Path(__file__).parent / "infra"
 
 
-def _import_module(filename: str) -> None:
-    """
-    Import a module by its filename and bring its contents into the current namespace.
-    """
-    module_name = f"infra.{filename[:-3]}"
-    # Import the module
-    module = importlib.import_module(module_name)
-
-    # Import all from the module to the current namespace
-    for attr in dir(module):
-        if attr.startswith("_"):  # Skip private attributes
-            continue
-        globals()[attr] = getattr(module, attr)
-
-
 def toggle_infra_modules():
     """
-    Use specialized environment variables to change their extension from `.py` to `.py.inactive`.
-    Specifically, if INFRA_ENABLE_<FILENAME> is set to 0, False, or false, the module is renamed
-    to `<FILENAME>.py.inactive` and if it is set to 1, True, or true, the module is renamed
-    back to `<FILENAME>.py`. If no specific environment variable is set, the module remains
-    unchanged to allow for manual control as well.
+    Use specialized environment variables to symlink configuration modules from the
+    configurations folder into the infra directory. Environment variables follow the
+    pattern INFRA_ENABLE_<FOLDER>_<FILENAME> set to 1, True, or true to override
+    existing symlinks at runtime.
+
+    For example, if you have configurations/llm/external_llm.py and want to use it
+    as infra/llm.py, set INFRA_ENABLE_LLM_EXTERNAL_LLM=True.
     """
-    # Mark inactive files inactive
-    for file_path in INFRA_DIR.glob("*.py"):
-        filename = file_path.name
-        if filename == "__init__.py" or filename == "__main__.py":
+    configurations_dir = Path(__file__).parent / "configurations"
+
+    if not configurations_dir.exists():
+        return
+
+    # Iterate through each configuration folder
+    for config_folder in configurations_dir.iterdir():
+        if not config_folder.is_dir():
             continue
-        env_var = f"INFRA_ENABLE_{filename[:-3].upper()}"
-        if getenv(env_var, "").lower() in ("0", "false"):
-            # Rename to inactive
-            new_name = file_path.with_suffix(".py.inactive")
-            file_path.rename(new_name)
-    # Mark inactive files active if variable is set
-    for file_path in INFRA_DIR.glob("*.py.inactive"):
-        filename = file_path.name
-        env_var = f"INFRA_ENABLE_{filename[:-12].upper()}"
-        if getenv(env_var, "").lower() in ("1", "true"):
-            # Rename back to active
-            new_name = file_path.with_suffix("")
-            if not new_name.exists():
-                file_path.rename(new_name)
+
+        folder_name = config_folder.name.upper()
+        target_module_path = INFRA_DIR / f"{config_folder.name}.py"
+
+        # Check for environment variables that override the current symlink
+        for config_file in config_folder.glob("*.py"):
+            filename_without_ext = config_file.stem.upper()
+            env_var = f"INFRA_ENABLE_{folder_name}_{filename_without_ext}"
+
+            if getenv(env_var, "").lower() in ("1", "true"):
+                # Remove existing symlink/file if it exists
+                if target_module_path.exists() or target_module_path.is_symlink():
+                    target_module_path.unlink()
+
+                # Create new symlink to the selected configuration
+                target_module_path.symlink_to(config_file.resolve())
 
 
 def import_infra_modules():
@@ -89,7 +82,17 @@ def import_infra_modules():
         filename = file_path.name
         if filename == "__init__.py" or filename == "__main__.py":
             continue
-        _import_module(filename)
+
+        # Import a module by its filename and bring its contents into the current namespace
+        module_name = f"infra.{filename[:-3]}"
+        # Import the module
+        module = importlib.import_module(module_name)
+
+        # Import all from the module to the current namespace
+        for attr in dir(module):
+            if attr.startswith("_"):  # Skip private attributes
+                continue
+            globals()[attr] = getattr(module, attr)
 
 
 def check_all_feature_flags():
