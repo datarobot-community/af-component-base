@@ -50,3 +50,4 @@ include_core:
 
 _subdirectory: template
 _answers_file: .datarobot/answers/base.yml
+_preserve_symlinks: true
