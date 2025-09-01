@@ -29,7 +29,7 @@ class HealthCheckFilter(logging.Filter):
         # Filter out health check requests only when log level is INFO or higher
         if numeric_log_level <= logging.DEBUG:
             return True
-            
+
         if hasattr(record, "getMessage"):
             message = record.getMessage()
             if "/health" in message and "GET" in message:
