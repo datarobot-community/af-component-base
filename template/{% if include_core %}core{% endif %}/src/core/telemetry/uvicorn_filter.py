@@ -20,13 +20,18 @@ from .logging import JsonFormatter, TextFormatter
 class HealthCheckFilter(logging.Filter):
     """Filter out health check requests from access logs."""
 
+    def __init__(self, log_level: str = "INFO"):
+        super().__init__()
+        self.log_level = log_level
+
     def filter(self, record: logging.LogRecord) -> bool:
-        if record.levelno < logging.INFO:
+        numeric_log_level = getattr(logging, self.log_level.upper())
+        # Filter out health check requests only when log level is INFO or higher
+        if numeric_log_level <= logging.DEBUG:
             return True
-        
+            
         if hasattr(record, "getMessage"):
             message = record.getMessage()
-            # Filter out health check requests
             if "/health" in message and "GET" in message:
                 return False
         return True
@@ -50,7 +55,7 @@ def configure_uvicorn_logging(
         )
 
     # Add the health check filter
-    handler.addFilter(HealthCheckFilter())
+    handler.addFilter(HealthCheckFilter(log_level))
 
     access_logger.addHandler(handler)
     access_logger.setLevel(getattr(logging, log_level.upper()))
