@@ -374,6 +374,7 @@ class DRFileSystem(AbstractFileSystem):  # type: ignore[misc]
         logger.debug("Removing file from catalog.", extra={"catalog_id": catalog_id})
         self.client.delete(f"files/{catalog_id}/")
 
+    @_keep_metadata_in_sync
     def _upload_to_catalog(self, virtual_path: str, local_path: str) -> None:
         logger.debug("Uploading file to catalog.", extra={"virtual_path": virtual_path})
         with open(local_path, "rb") as f:
