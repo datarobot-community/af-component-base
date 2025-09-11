@@ -457,6 +457,12 @@ def calculate_checksum(path: str) -> bytes:
     return adder.digest()
 
 
+def all_env_variables_present() -> bool:
+    # check if all env variables are present
+    expected_envs = ["DATAROBOT_ENDPOINT", "DATAROBOT_API_TOKEN", "APPLICATION_ID"]
+    return not any(not os.environ.get(env_name) for env_name in expected_envs)
+
+
 class _FileIOWrapper(io.FileIO):
     def __init__(
         self, fs_entity: DRFileSystem, virtual_path: str, name: str, mode: str
