@@ -3,6 +3,19 @@
 version: '3'
 
 tasks:
+
+  auth-check:
+    silent: true
+    desc: "🔐 Check authentication prerequisites"
+    cmds:
+      - |
+        if command -v dr &> /dev/null; then
+          if dr auth help 2>&1 | grep -q "check"; then
+            echo "🔐 Checking authentication.."
+            dr auth check
+          fi
+        fi
+
   install:
     desc: "🔧 Install dependencies"
     cmds:
@@ -38,25 +51,13 @@ tasks:
     cmds:
       - uv run pulumi stack select
 
-  check-auth:
-    silent: true
-    desc: "🔐 Check authentication prerequisites"
-    cmds:
-      - |
-        if command -v dr &> /dev/null; then
-          if dr auth help 2>&1 | grep -q "check"; then
-            echo "🔐 Checking authentication.."
-            dr auth check
-          fi
-        fi
-
   up:
     silent: true
     aliases:
       - deploy
     desc: "🔨 Deploy the infrastructure"
     deps:
-      - check-auth
+      - auth-check
     cmds:
       - echo "🔨 Deploying the infrastructure.."
       - uv run pulumi up
@@ -73,7 +74,7 @@ tasks:
       - destroy
     desc: "💥 Destroy the deployed infrastructure"
     deps:
-      - check-auth
+      - auth-check
     cmds:
       - echo "💥 Destroying the infrastructure.."
       - uv run pulumi down
