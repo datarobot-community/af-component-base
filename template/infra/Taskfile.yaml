@@ -9,13 +9,11 @@ tasks:
     desc: "🔐 Check authentication prerequisites"
     cmds:
       - |
-        if command -v dr &> /dev/null; then
-          if dr auth help 2>&1 | grep -q "check"; then
-            echo "🔐 Checking authentication.."
-            dr auth check
-          else
-            echo "ℹ️  Skipping auth check (not supported)"
-          fi
+        if command -v dr &> /dev/null && dr auth help 2>&1 | grep -q "check"; then
+          echo "🔐 Checking authentication.."
+          dr auth check
+        else
+          echo "ℹ️  Skipping auth check (not available)"
         fi
 
   install:
