@@ -3,6 +3,19 @@
 version: '3'
 
 tasks:
+
+  auth-check:
+    silent: true
+    desc: "🔐 Check authentication prerequisites"
+    cmds:
+      - |
+        if command -v dr &> /dev/null && dr auth help 2>&1 | grep -q "check"; then
+          echo "🔐 Checking authentication.."
+          dr auth check
+        else
+          echo "ℹ️  Skipping auth check (not available)"
+        fi
+
   install:
     desc: "🔧 Install dependencies"
     cmds:
@@ -40,8 +53,11 @@ tasks:
 
   up:
     silent: true
-    aliases: [deploy]
+    aliases:
+      - deploy
     desc: "🔨 Deploy the infrastructure"
+    deps:
+      - auth-check
     cmds:
       - echo "🔨 Deploying the infrastructure.."
       - uv run pulumi up
@@ -54,14 +70,18 @@ tasks:
 
   down:
     silent: true
-    aliases: [destroy]
+    aliases:
+      - destroy
     desc: "💥 Destroy the deployed infrastructure"
+    deps:
+      - auth-check
     cmds:
       - echo "💥 Destroying the infrastructure.."
       - uv run pulumi down
 
   copyright:
-    aliases: [license]
+    aliases:
+      - license
     desc: 📜 Apply license headers
     cmds:
       - echo "📜 Applying license headers"
@@ -69,7 +89,8 @@ tasks:
         -v info -c .licenserc.yaml header fix
 
   copyright-check:
-    aliases: [license-check]
+    aliases:
+      - license-check
     desc: 📜 Checking for license headers
     cmds:
       - echo "📜 Checking license headers"
