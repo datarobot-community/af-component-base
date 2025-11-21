@@ -4,7 +4,8 @@ version: '3'
 
 vars:
   PULUMI_SKIP_UPDATE_CHECK:
-    # Check if PULUMI_SKIP_UPDATE_CHECK is set in the environment; if not, default to "0"
+    # Check if PULUMI_SKIP_UPDATE_CHECK is set in the environment;
+    # if not, default to "0"
     sh: |
       if [ -n "${PULUMI_SKIP_UPDATE_CHECK:-}" ]; then
         echo "${PULUMI_SKIP_UPDATE_CHECK}"
@@ -12,7 +13,8 @@ vars:
         echo "0"
       fi
   PULUMI_DATAROBOT_PLUGIN_VERSION:
-    # Check if PULUMI_DATAROBOT_PLUGIN_VERSION is set in the environment; if not, default to preset version
+    # Check if PULUMI_DATAROBOT_PLUGIN_VERSION is set in the environment;
+    # if not, default to preset version
     sh: |
       if [ -n "${PULUMI_DATAROBOT_PLUGIN_VERSION:-}" ]; then
         echo "${PULUMI_DATAROBOT_PLUGIN_VERSION}"
@@ -20,8 +22,9 @@ vars:
         echo "v0.10.24"
       fi
   PULUMI_DATAROBOT_DEFAULT_URL: 
-    # Check if PULUMI_DATAROBOT_DEFAULT_URL is set in the environment; if not, default to preset URL
-    # This url can be specified to override the default url in air-gapped environments
+    # Check if PULUMI_DATAROBOT_DEFAULT_URL is set in the environment;
+    # if not, default to preset URL
+    # This url can be specified to override the default url (e.g. air gap)
     sh: |
       if [ -n "${PULUMI_DATAROBOT_DEFAULT_URL:-}" ]; then
         echo "${PULUMI_DATAROBOT_DEFAULT_URL}"
