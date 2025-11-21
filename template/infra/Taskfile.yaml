@@ -21,7 +21,7 @@ vars:
       else
         echo "v0.10.24"
       fi
-  PULUMI_DATAROBOT_DEFAULT_URL: 
+  PULUMI_DATAROBOT_DEFAULT_URL:
     # Check if PULUMI_DATAROBOT_DEFAULT_URL is set in the environment;
     # if not, default to preset URL
     # This url can be specified to override the default url (e.g. air gap)
