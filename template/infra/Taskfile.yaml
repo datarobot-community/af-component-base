@@ -3,6 +3,19 @@
 version: '3'
 
 vars:
+  UV_CMD:
+    # Cross-platform environment cleaning - uses 'env -u' on Unix systems
+    # Falls back to empty string on Windows
+    sh: |
+      # This command ensures compatibility with codespaces environments
+      # Cross-platform environment cleaning - uses 'env -u' on Unix systems,
+      # falls back to empty string on Windows
+      if command -v env >/dev/null 2>&1; then
+        echo "env -u PYTHONPATH -u VIRTUAL_ENV uv"
+      else
+        echo "uv"
+      fi
+
   PULUMI_SKIP_UPDATE_CHECK:
     # Check if PULUMI_SKIP_UPDATE_CHECK is set in the environment;
     # if not, default to "0"
@@ -12,6 +25,7 @@ vars:
       else
         echo "0"
       fi
+
   PULUMI_DATAROBOT_PLUGIN_VERSION:
     # Check if PULUMI_DATAROBOT_PLUGIN_VERSION is set in the environment;
     # if not, default to preset version
@@ -21,6 +35,7 @@ vars:
       else
         echo "v0.10.24"
       fi
+
   PULUMI_DATAROBOT_DEFAULT_URL:
     # Check if PULUMI_DATAROBOT_DEFAULT_URL is set in the environment;
     # if not, default to preset URL
@@ -63,36 +78,36 @@ tasks:
     desc: "🔧 Install dependencies"
     cmds:
       - echo "🔧 Installing dependencies.."
-      - uv sync --all-extras --dev
+      - "{{.UV_CMD}} sync --all-extras --dev"
 
   lint:
     silent: true
     desc: "🧹 Run linters"
     cmds:
       - echo "🧹 Running linters.."
-      - uv run ruff format .
-      - uv run ruff check . --fix
-      - uv run mypy --pretty .
+      - "{{.UV_CMD}} run ruff format ."
+      - "{{.UV_CMD}} run ruff check . --fix"
+      - "{{.UV_CMD}} run mypy --pretty ."
 
   lint-check:
     silent: true
     desc: "🧹 Check whether the codebase is linted"
     cmds:
-      - uv run ruff format --check .
-      - uv run ruff check .
-      - uv run mypy --pretty .
+      - "{{.UV_CMD}} run ruff format --check ."
+      - "{{.UV_CMD}} run ruff check ."
+      - "{{.UV_CMD}} run mypy --pretty ."
 
   init:
     silent: true
     desc: "🆕 Initialize a new Pulumi stack"
     cmds:
-      - uv run pulumi stack init
+      - "{{.UV_CMD}} run pulumi stack init {{.CLI_ARGS}}"
 
   select:
     silent: true
     desc: "🚂 Select a Stack"
     cmds:
-      - uv run pulumi stack select
+      - "{{.UV_CMD}} run pulumi stack select {{.CLI_ARGS}}"
 
   up:
     silent: true
@@ -104,7 +119,7 @@ tasks:
     cmds:
       - task: pulumi-datarobot-plugin-check
       - echo "🔨 Deploying the infrastructure.."
-      - uv run pulumi up
+      - "{{.UV_CMD}} run pulumi up {{.CLI_ARGS}}"
 
   info:
     silent: true
@@ -112,6 +127,14 @@ tasks:
     cmds:
       - task: pulumi-datarobot-plugin-check
       - uv run pulumi stack
+      - "{{.UV_CMD}} run pulumi stack {{.CLI_ARGS}}"
+
+  pulumi:
+    silent: true
+    # desc: "ℹ🛠️ Execute a generic pulumi command"
+    cmds:
+      - task: pulumi-datarobot-plugin-check
+      - "{{.UV_CMD}} run pulumi {{.CLI_ARGS}}"
 
   down:
     silent: true
@@ -123,7 +146,7 @@ tasks:
     cmds:
       - task: pulumi-datarobot-plugin-check
       - echo "💥 Destroying the infrastructure.."
-      - uv run pulumi down
+      - "{{.UV_CMD}} run pulumi down {{.CLI_ARGS}}"
 
   copyright:
     aliases:
