@@ -4,8 +4,9 @@ root:
     type: secret_string
     default: ""
     optional: true
-    help: "Enter the passphrase used to encrypt and decrypt the private key. This value is required if you're not using Pulumi Cloud."
-
+    help: >
+      Enter the passphrase used to encrypt and decrypt the private key.
+      This value is required if you're not using Pulumi Cloud.
   - env: DATAROBOT_DEFAULT_USE_CASE
     type: string
     default:
