@@ -4,9 +4,9 @@ root:
     type: secret_string
     default: ""
     optional: true
-    help: "The passphrase used to encrypt and decrypt the private key. This value is required if you're not using pulumi cloud."
+    help: "Enter the passphrase used to encrypt and decrypt the private key. This value is required if you're not using Pulumi Cloud."
   - env: DATAROBOT_DEFAULT_USE_CASE
     type: string
     default:
     optional: true
-    help: "The default use case for this application. If not set, a new use case will be created automatically"
+    help: "Enter the default use case for this application. If not set, a new use case will be created automatically."
