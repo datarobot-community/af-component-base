@@ -24,7 +24,7 @@ trigger:
               operator: Equals
               value: requirements.txt
           headerConditions: []
-          repoName: recipe-bob
+          repoName: {{ private_repo_name }}
           actions:
             - Open
             - Synchronize
