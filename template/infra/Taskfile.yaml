@@ -69,9 +69,9 @@ tasks:
     # desc: "⬇️ Install DataRobot Pulumi plugins"
     cmds:
       - |
-        if [ "{{PULUMI_SKIP_UPDATE_CHECK}}" = "1" ]; then
-          uv run pulumi plugin install resource datarobot {{PULUMI_DATAROBOT_PLUGIN_VERSION}} \
-          --server {{PULUMI_DATAROBOT_DEFAULT_URL}}
+        if [ "{{.PULUMI_SKIP_UPDATE_CHECK}}" = "1" ]; then
+          uv run pulumi plugin install resource datarobot {{.PULUMI_DATAROBOT_PLUGIN_VERSION}} \
+          --server {{.PULUMI_DATAROBOT_DEFAULT_URL}}
         fi
 
   install:
@@ -126,7 +126,6 @@ tasks:
     desc: "ℹ️ Show Pulumi stack info"
     cmds:
       - task: pulumi-datarobot-plugin-check
-      - uv run pulumi stack
       - "{{.UV_CMD}} run pulumi stack {{.CLI_ARGS}}"
 
   pulumi:
