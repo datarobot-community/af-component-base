@@ -155,7 +155,7 @@ tasks:
     cmds:
       - task: pulumi-datarobot-plugin-check
       - echo "💥 Destroying the infrastructure.."
-      - "{{.UV_CMD}} run pulumi down {{.CLI_ARGS}}"
+      - "{{.UV_CMD}} run pulumi destroy {{.CLI_ARGS}}"
 
   copyright:
     aliases:
