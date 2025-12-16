@@ -121,6 +121,16 @@ tasks:
       - echo "🔨 Deploying the infrastructure.."
       - "{{.UV_CMD}} run pulumi up {{.CLI_ARGS}}"
 
+  refresh:
+    silent: true
+    desc: "🔄 Refresh the infrastructure"
+    deps:
+      - auth-check
+    cmds:
+      - task: pulumi-datarobot-plugin-check
+      - echo "🔄 Refreshing the infrastructure.."
+      - "{{.UV_CMD}} run pulumi refresh {{.CLI_ARGS}}"
+
   info:
     silent: true
     desc: "ℹ️ Show Pulumi stack info"
