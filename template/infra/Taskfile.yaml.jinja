@@ -77,7 +77,7 @@ tasks:
     cmds:
       - |
         if [ "{{ "{{.PULUMI_SKIP_UPDATE_CHECK}}" }}" = "1" ]; then
-          uv run pulumi plugin install resource datarobot {{ "{{.PULUMI_DATAROBOT_PLUGIN_VERSION}}" }} \
+          {{ "{{.UV_CMD}}" }} run pulumi plugin install resource datarobot {{ "{{.PULUMI_DATAROBOT_PLUGIN_VERSION}}" }} \
           --server {{ "{{.PULUMI_DATAROBOT_DEFAULT_URL}}" }}
         fi
 
