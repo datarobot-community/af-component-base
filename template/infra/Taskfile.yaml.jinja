@@ -2,20 +2,14 @@
 # https://taskfile.dev
 version: '3'
 
-vars:
-  UV_CMD:
-    # Cross-platform environment cleaning - uses 'env -u' on Unix systems
-    # Falls back to empty string on Windows
-    sh: |
-      # This command ensures compatibility with codespaces environments
-      # Cross-platform environment cleaning - uses 'env -u' on Unix systems,
-      # falls back to empty string on Windows
-      if command -v env >/dev/null 2>&1; then
-        echo "env -u PYTHONPATH -u VIRTUAL_ENV uv"
-      else
-        echo "uv"
-      fi
+{%- if include_core %}
+includes:
+  common:
+    taskfile: ../core/task-common.yaml
+    internal: true
+{%- endif %}
 
+vars:
   PULUMI_SKIP_UPDATE_CHECK:
     # Check if PULUMI_SKIP_UPDATE_CHECK is set in the environment;
     # if not, default to "0"
@@ -46,6 +40,19 @@ vars:
       else
         echo "https://github.com/datarobot-community/pulumi-datarobot/releases/download/v0.10.27"
       fi
+{%- if not include_core %}
+  # Cross-platform environment cleaning - uses 'env -u' on Unix systems, falls back to empty string on Windows
+  UV_CMD:
+    sh: |
+      # This command ensures compatibility with codespaces environments
+      # Cross-platform environment cleaning - uses 'env -u' on Unix systems,
+      # falls back to empty string on Windows
+      if command -v env >/dev/null 2>&1; then
+        echo "env -u PYTHONPATH -u VIRTUAL_ENV uv"
+      else
+        echo "uv"
+      fi
+{%- endif %}
 
 tasks:
 
@@ -69,45 +76,45 @@ tasks:
     # desc: "⬇️ Install DataRobot Pulumi plugins"
     cmds:
       - |
-        if [ "{{.PULUMI_SKIP_UPDATE_CHECK}}" = "1" ]; then
-          uv run pulumi plugin install resource datarobot {{.PULUMI_DATAROBOT_PLUGIN_VERSION}} \
-          --server {{.PULUMI_DATAROBOT_DEFAULT_URL}}
+        if [ "{{ "{{.PULUMI_SKIP_UPDATE_CHECK}}" }}" = "1" ]; then
+          uv run pulumi plugin install resource datarobot {{ "{{.PULUMI_DATAROBOT_PLUGIN_VERSION}}" }} \
+          --server {{ "{{.PULUMI_DATAROBOT_DEFAULT_URL}}" }}
         fi
 
   install:
     desc: "🔧 Install dependencies"
     cmds:
       - echo "🔧 Installing dependencies.."
-      - "{{.UV_CMD}} sync --all-extras --dev"
+      - "{{ "{{.UV_CMD}}" }} sync --all-extras --dev"
 
   lint:
     silent: true
     desc: "🧹 Run linters"
     cmds:
       - echo "🧹 Running linters.."
-      - "{{.UV_CMD}} run ruff format ."
-      - "{{.UV_CMD}} run ruff check . --fix"
-      - "{{.UV_CMD}} run mypy --pretty ."
+      - "{{ "{{.UV_CMD}}" }} run ruff format ."
+      - "{{ "{{.UV_CMD}}" }} run ruff check . --fix"
+      - "{{ "{{.UV_CMD}}" }} run mypy --pretty ."
 
   lint-check:
     silent: true
     desc: "🧹 Check whether the codebase is linted"
     cmds:
-      - "{{.UV_CMD}} run ruff format --check ."
-      - "{{.UV_CMD}} run ruff check ."
-      - "{{.UV_CMD}} run mypy --pretty ."
+      - "{{ "{{.UV_CMD}}" }} run ruff format --check ."
+      - "{{ "{{.UV_CMD}}" }} run ruff check ."
+      - "{{ "{{.UV_CMD}}" }} run mypy --pretty ."
 
   init:
     silent: true
     desc: "🆕 Initialize a new Pulumi stack"
     cmds:
-      - "{{.UV_CMD}} run pulumi stack init {{.CLI_ARGS}}"
+      - "{{ "{{.UV_CMD}}" }} run pulumi stack init {{ "{{.CLI_ARGS}}" }}"
 
   select:
     silent: true
     desc: "🚂 Select a Stack"
     cmds:
-      - "{{.UV_CMD}} run pulumi stack select {{.CLI_ARGS}}"
+      - "{{ "{{.UV_CMD}}" }} run pulumi stack select {{ "{{.CLI_ARGS}}" }}"
 
   up:
     silent: true
@@ -119,7 +126,7 @@ tasks:
     cmds:
       - task: pulumi-datarobot-plugin-check
       - echo "🔨 Deploying the infrastructure.."
-      - "{{.UV_CMD}} run pulumi up {{.CLI_ARGS}}"
+      - "{{ "{{.UV_CMD}}" }} run pulumi up {{ "{{.CLI_ARGS}}" }}"
 
   refresh:
     silent: true
@@ -129,21 +136,21 @@ tasks:
     cmds:
       - task: pulumi-datarobot-plugin-check
       - echo "🔄 Refreshing the infrastructure.."
-      - "{{.UV_CMD}} run pulumi refresh {{.CLI_ARGS}}"
+      - "{{ "{{.UV_CMD}}" }} run pulumi refresh {{ "{{.CLI_ARGS}}" }}"
 
   info:
     silent: true
     desc: "ℹ️ Show Pulumi stack info"
     cmds:
       - task: pulumi-datarobot-plugin-check
-      - "{{.UV_CMD}} run pulumi stack {{.CLI_ARGS}}"
+      - "{{ "{{.UV_CMD}}" }} run pulumi stack {{ "{{.CLI_ARGS}}" }}"
 
   pulumi:
     silent: true
     # desc: "ℹ🛠️ Execute a generic pulumi command"
     cmds:
       - task: pulumi-datarobot-plugin-check
-      - "{{.UV_CMD}} run pulumi {{.CLI_ARGS}}"
+      - "{{ "{{.UV_CMD}}" }} run pulumi {{ "{{.CLI_ARGS}}" }}"
 
   down:
     silent: true
@@ -155,7 +162,7 @@ tasks:
     cmds:
       - task: pulumi-datarobot-plugin-check
       - echo "💥 Destroying the infrastructure.."
-      - "{{.UV_CMD}} run pulumi destroy {{.CLI_ARGS}}"
+      - "{{ "{{.UV_CMD}}" }} run pulumi destroy {{ "{{.CLI_ARGS}}" }}"
 
   copyright:
     aliases:
