@@ -7,3 +7,4 @@ formatter:
   max_line_length: 120
 exclude:
   - mytemplate/.datarobot/answers/base.yml
+  - mytemplate_with_core/.datarobot/answers/base.yml
