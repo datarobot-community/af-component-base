@@ -136,7 +136,7 @@ tasks:
     cmds:
       - task: pulumi-datarobot-plugin-check
       - echo "🔨 Deploying the infrastructure (non-interactive).."
-      - "{{.UV_CMD}} run pulumi up -y {{.CLI_ARGS}}"
+      - "{{ "{{.UV_CMD}}" }} run pulumi up -y {{ "{{.CLI_ARGS}}" }}"
 
   refresh:
     silent: true
@@ -182,7 +182,7 @@ tasks:
     cmds:
       - task: pulumi-datarobot-plugin-check
       - echo "💥 Destroying the infrastructure (non-interactive).."
-      - "{{.UV_CMD}} run pulumi destroy -y {{.CLI_ARGS}}"
+      - "{{ "{{.UV_CMD}}" }} run pulumi destroy -y {{ "{{.CLI_ARGS}}" }}"
 
   copyright:
     aliases:
