@@ -128,6 +128,16 @@ tasks:
       - echo "🔨 Deploying the infrastructure.."
       - "{{ "{{.UV_CMD}}" }} run pulumi up {{ "{{.CLI_ARGS}}" }}"
 
+  up-yes:
+    silent: true
+    desc: "🔨 Deploy the infrastructure (non-interactive, auto-confirm)"
+    deps:
+      - auth-check
+    cmds:
+      - task: pulumi-datarobot-plugin-check
+      - echo "🔨 Deploying the infrastructure (non-interactive).."
+      - "{{.UV_CMD}} run pulumi up -y {{.CLI_ARGS}}"
+
   refresh:
     silent: true
     desc: "🔄 Refresh the infrastructure"
@@ -163,6 +173,16 @@ tasks:
       - task: pulumi-datarobot-plugin-check
       - echo "💥 Destroying the infrastructure.."
       - "{{ "{{.UV_CMD}}" }} run pulumi destroy {{ "{{.CLI_ARGS}}" }}"
+
+  down-yes:
+    silent: true
+    desc: "💥 Destroy the deployed infrastructure (non-interactive, auto-confirm)"
+    deps:
+      - auth-check
+    cmds:
+      - task: pulumi-datarobot-plugin-check
+      - echo "💥 Destroying the infrastructure (non-interactive).."
+      - "{{.UV_CMD}} run pulumi destroy -y {{.CLI_ARGS}}"
 
   copyright:
     aliases:
