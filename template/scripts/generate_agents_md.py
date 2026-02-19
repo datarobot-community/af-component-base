@@ -57,7 +57,6 @@ MARKER_END = "<!-- AGENTS:GENERATED:END -->"
 DEFAULT_MODEL = "datarobot/anthropic/claude-opus-4-5-20251101"
 DEFAULT_TEST_MODEL = "datarobot/anthropic/claude-sonnet-4-5-20250929"
 
-# Files to read in full (capped at MAX_FILE_BYTES each)
 PRIORITY_FILES = [
     "README.md",
     "AGENTS.md",
@@ -530,14 +529,18 @@ def write_copilot_instructions(repo_root: Path, dry_run: bool) -> None:
 def _clean_generated(text: str) -> str:
     """Strip markdown code fences and any AGENTS markers the LLM may have included."""
     text = text.strip()
-    # Strip wrapping ```markdown ... ``` or ``` ... ``` fences
-    for fence in ("```markdown", "```"):
-        if text.startswith(fence):
-            text = text[len(fence):]
-            if text.endswith("```"):
-                text = text[:-3]
-            text = text.strip()
-            break
+    # Strip wrapping ```... or ```lang ... ``` fences (lang = markdown, md, text, etc.)
+    if text.startswith("```"):
+        # Strip entire opening fence line (``` + optional language id) to avoid leaking
+        # "md" or "text" when LLM uses ```md or ```text instead of ```markdown
+        first_newline = text.find("\n")
+        if first_newline >= 0:
+            text = text[first_newline + 1:]
+        else:
+            text = text[3:]
+        if text.endswith("```"):
+            text = text[:-3]
+        text = text.strip()
     # Strip any markers the LLM echoed back
     text = _strip_markers(text)
     return text.strip()
@@ -559,7 +562,10 @@ def apply_generated_content(existing: str, generated: str) -> str:
         "\n\n<!-- Add custom content below this line. "
         "It will be preserved when AGENTS.md is regenerated. -->\n"
     )
-    return f"{MARKER_START}\n{generated}\n{MARKER_END}{custom_note}"
+    result = f"{MARKER_START}\n{generated}\n{MARKER_END}{custom_note}"
+    if existing.strip():
+        result = result + "\n\n" + existing.strip()
+    return result
 
 
 def write_agents_md(target_dir: Path, generated: str, dry_run: bool) -> None:
@@ -654,13 +660,15 @@ def main() -> None:
         print("❌ DATAROBOT_API_TOKEN not set. Add it to .env or export it.", file=sys.stderr)
         sys.exit(1)
 
-    # Resolve paths
+    # Resolve paths — both must use resolved paths so relative_to() works on systems
+    # where cwd is symlinked (e.g. macOS /tmp → /private/tmp)
     cwd = Path.cwd()
     target_dir = (cwd / args.dir).resolve()
     # Repo root is wherever .git lives — walk up from cwd
     repo_root = cwd
     while not (repo_root / ".git").exists() and repo_root != repo_root.parent:
         repo_root = repo_root.parent
+    repo_root = repo_root.resolve()
 
     if not target_dir.is_dir():
         print(f"❌ Not a directory: {target_dir}", file=sys.stderr)
@@ -671,7 +679,7 @@ def main() -> None:
     print(f"🤖 Model:      {model}")
 
     if args.test:
-        run_test(target_dir, repo_root, model, test_model, endpoint, api_key)
+        run_test(target_dir, repo_root, test_model, endpoint, api_key)
         return
 
     if args.revise:
@@ -691,9 +699,9 @@ def main() -> None:
 
     write_agents_md(target_dir, generated, dry_run=args.dry_run)
 
-    if not args.no_copilot:
+    if not args.no_copilot and not args.dry_run:
         print("📋 Updating .github/copilot-instructions.md...")
-        write_copilot_instructions(repo_root, dry_run=args.dry_run)
+        write_copilot_instructions(repo_root, dry_run=False)
 
 
 if __name__ == "__main__":
