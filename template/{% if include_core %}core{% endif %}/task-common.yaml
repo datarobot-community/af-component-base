@@ -12,3 +12,11 @@ vars:
       else
         echo "uv"
       fi
+tasks:
+  # Internal: components include this and expose via wrapper that passes --dir <component>.
+  # e.g. agents-md: dir: .. ; cmds: - task: common:agents-md -- --dir mcp_server
+  agents-md:
+    desc: "🤖 Generate/update AGENTS.md via DataRobot LLM (internal; pass --dir <component>)"
+    dir: ..
+    cmds:
+      - uv run scripts/generate_agents_md.py {{.CLI_ARGS}}
