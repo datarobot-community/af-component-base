@@ -305,7 +305,6 @@ One sentence explaining why.
 def run_test(
     target_dir: Path,
     repo_root: Path,
-    model: str,
     test_model: str,
     endpoint: str,
     api_key: str,
@@ -662,9 +661,9 @@ def main() -> None:
 
     # Resolve paths — both must use resolved paths so relative_to() works on systems
     # where cwd is symlinked (e.g. macOS /tmp → /private/tmp)
-    cwd = Path.cwd()
+    cwd = Path.cwd().resolve()
     target_dir = (cwd / args.dir).resolve()
-    # Repo root is wherever .git lives — walk up from cwd
+    # Repo root is wherever .git lives — walk up from resolved cwd
     repo_root = cwd
     while not (repo_root / ".git").exists() and repo_root != repo_root.parent:
         repo_root = repo_root.parent
