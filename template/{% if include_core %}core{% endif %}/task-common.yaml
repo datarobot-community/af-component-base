@@ -19,4 +19,4 @@ tasks:
     desc: "🤖 Generate/update AGENTS.md via DataRobot LLM (internal; pass --dir <component>)"
     dir: ..
     cmds:
-      - uv run scripts/generate_agents_md.py {{.CLI_ARGS}}
+      - "{{.UV_CMD}} run scripts/generate_agents_md.py {{.CLI_ARGS}}"
