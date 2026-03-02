@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import hashlib
 import logging
 import os
 from typing import (
@@ -85,3 +86,16 @@ class DRFileSystem(DataRobotFileSystem):  # type: ignore[misc]
                 f"Invalid path '{path}'. Expected format: '{self.protocol}://path/to/file.txt'"
             )
         return self._catalog_id, path_without_protocol
+
+
+def calculate_checksum(path: str) -> bytes:
+    adder = hashlib.sha256()
+    with open(path, "rb") as file:
+        while chunk := file.read(8192):
+            adder.update(chunk)
+    return adder.digest()
+
+def all_env_variables_present() -> bool:
+    # check if all env variables are present
+    expected_envs = ["DATAROBOT_ENDPOINT", "DATAROBOT_API_TOKEN", "APPLICATION_ID"]
+    return not any(not os.environ.get(env_name) for env_name in expected_envs)
