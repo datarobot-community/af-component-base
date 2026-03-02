@@ -14,9 +14,7 @@
 import hashlib
 import logging
 import os
-from typing import (
-    Any,
-)
+from typing import Any, Iterable, cast
 
 import datarobot as dr
 from datarobot._experimental.fs.file_system import DataRobotFileSystem
@@ -35,12 +33,13 @@ FILE_API_CONNECT_TIMEOUT = float(os.environ.get("FILE_API_CONNECT_TIMEOUT", 180)
 FILE_API_READ_TIMEOUT = float(os.environ.get("FILE_API_READ_TIMEOUT", 180))
 
 
-class DRFileSystem(DataRobotFileSystem):  # type: ignore[misc]
+class DRFileSystem(DataRobotFileSystem):
     """
     DRFileSystem is fsspec implementation for interact with Datarobot
     KeyValue and File storage for having persistent storage inside
     custom applications.
     """
+    _catalog_id: str | None = None
 
     def __init__(
         self,
@@ -86,6 +85,12 @@ class DRFileSystem(DataRobotFileSystem):  # type: ignore[misc]
                 f"Invalid path '{path}'. Expected format: '{self.protocol}://path/to/file.txt'"
             )
         return self._catalog_id, path_without_protocol
+    
+    def mkdir(self, *args: Iterable[Any], **kwargs: Any) -> None:
+        pass
+
+    def makedirs(self, *args: Iterable[Any], **kwargs: Any) -> None:
+        pass
 
 
 def calculate_checksum(path: str) -> bytes:
