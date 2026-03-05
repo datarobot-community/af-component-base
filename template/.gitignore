@@ -178,3 +178,5 @@ cython_debug/
 # DataRobot CLI stuff:
 #  .dr/state contains user-specific history and audit-trail while working with the CLI
 .datarobot/state/
+
+pulumi_config.json
