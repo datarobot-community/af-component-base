@@ -206,12 +206,14 @@ tasks:
     desc: "Run unit tests"
     vars:
       TEST_PATH: tests/units/
-    preconditions:
-      - test -d {{ "{{.TEST_PATH}}" }}
     cmds:
-      - rm -rf .coverage .coverage.xml htmlcov
-      - echo "Running unit tests"
-      - >-
-        {{ "{{.UV_CMD}}" }} sync --all-extras && {{ "{{.UV_CMD}}" }} run pytest {{ "{{if .CLI_ARGS}}{{.CLI_ARGS}}{{else}}{{.TEST_PATH}}{{end}}" }}
-        --cov=infra --cov=tools --cov-report=xml --cov-report=html --cov-report=term-missing -s -vv
+      - |
+        if [ ! -d {{ "{{.TEST_PATH}}" }} ]; then
+          echo "Skipping unit tests ({{ "{{.TEST_PATH}}" }} not found)"
+          exit 0
+        fi
+        rm -rf .coverage .coverage.xml htmlcov
+        echo "Running unit tests"
+        {{ "{{.UV_CMD}}" }} sync --all-extras && {{ "{{.UV_CMD}}" }} run pytest {{ "{{if .CLI_ARGS}}{{.CLI_ARGS}}{{else}}{{.TEST_PATH}}{{end}}" }} \
+          --cov=infra --cov=tools --cov-report=xml --cov-report=html --cov-report=term-missing -s -vv
     silent: true
