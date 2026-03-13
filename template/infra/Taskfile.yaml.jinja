@@ -201,3 +201,17 @@ tasks:
       - echo "📜 Checking license headers"
       - docker run  --rm -v $PWD:/github/workspace ghcr.io/apache/skywalking-eyes/license-eye:eb0e0b091ea41213f712f622797e37526ca1e5d6
         -v info -c .licenserc.yaml header check
+
+  unit:
+    desc: "Run unit tests"
+    vars:
+      TEST_PATH: tests/units/
+    preconditions:
+      - test -d {{ "{{.TEST_PATH}}" }}
+    cmds:
+      - rm -rf .coverage .coverage.xml htmlcov
+      - echo "Running unit tests"
+      - >-
+        {{ "{{.UV_CMD}}" }} sync --all-extras && {{ "{{.UV_CMD}}" }} run pytest {{ "{{if .CLI_ARGS}}{{.CLI_ARGS}}{{else}}{{.TEST_PATH}}{{end}}" }}
+        --cov=infra --cov=tools --cov-report=xml --cov-report=html --cov-report=term-missing -s -vv
+    silent: true

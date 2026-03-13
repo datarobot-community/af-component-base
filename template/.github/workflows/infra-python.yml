@@ -40,3 +40,13 @@ jobs:
       - name: Run Static Checks
         working-directory: infra
         run: task lint-check
+
+      - name: Run Unit Tests
+        working-directory: infra
+        run: task unit
+
+      - name: Get Cover
+        uses: orgoro/coverage@v3.2
+        with:
+          coverageFile: infra/coverage.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
