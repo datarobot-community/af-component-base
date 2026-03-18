@@ -29,7 +29,7 @@ template_description:
 
 copyright_year:
   type: int
-  default: 2025
+  default: 2026
   help: "The current year to register copyright properly in the license file"
 
 github_owner_group:
