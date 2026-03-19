@@ -22,20 +22,10 @@ copyright_year:
   default: 2026
   help: "The current year to register copyright properly in the license file"
 
-github_owner_group:
-  type: str
-  default: "@datarobot/customer-engineering"
-  help: "The GitHub team or username that will own the repository for this application template"
-
 include_core:
   type: bool
   default: true
   help: "Include the `core` library package for multi-component recipes?"
-
-include_prediction_environment:
-  type: bool
-  default: false
-  help: "Include a global prediction environment resource in the infrastructure for all components?"
 
 _subdirectory: template
 _answers_file: .datarobot/answers/base.yml
