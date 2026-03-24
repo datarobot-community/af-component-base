@@ -137,6 +137,7 @@ env.bak/
 venv.bak/
 # Don't ignore template env file
 !.env.template
+!.env.template.jinja
 
 # Spyder project settings
 .spyderproject
