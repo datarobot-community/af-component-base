@@ -48,5 +48,8 @@ if prediction_environment_id := os.environ.get("DATAROBOT_DEFAULT_PREDICTION_ENV
     )
 else:
     prediction_environment = datarobot.PredictionEnvironment(
-        resource_name=f"{{template_name}} [{PROJECT_NAME}]",
+        resource_name=f"{{template_name}} [{PROJECT_NAME}] Prediction Environment",
+        name=f"{{template_name}} [{PROJECT_NAME}]",
+        platform=datarobot.enums.PredictionEnvironmentPlatform.DATAROBOT_SERVERLESS,
+        opts=pulumi.ResourceOptions(retain_on_delete=False),
     )

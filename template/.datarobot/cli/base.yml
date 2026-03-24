@@ -16,4 +16,5 @@ root:
     type: string
     default:
     optional: true
-    help: "Enter the default prediction environment for this application. If not set, a new prediction environment will be created automatically."
+    help: "Enter the default prediction environment for this application. If not set, a new prediction environment will be
+      created automatically."
