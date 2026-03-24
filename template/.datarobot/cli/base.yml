@@ -12,3 +12,9 @@ root:
     default:
     optional: true
     help: "Enter the default use case for this application. If not set, a new use case will be created automatically."
+  - env: DATAROBOT_DEFAULT_PREDICTION_ENVIRONMENT
+    type: string
+    default:
+    optional: true
+    help: "Enter the default prediction environment for this application. If not set, a new prediction environment will be
+      created automatically."
