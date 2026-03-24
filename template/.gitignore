@@ -180,3 +180,4 @@ cython_debug/
 .datarobot/state/
 
 pulumi_config.json
+.datarobot/cli/state.yaml
