@@ -21,7 +21,7 @@ from pathlib import Path
 from datarobot_pulumi_utils.pulumi.stack import PROJECT_NAME
 import pulumi
 import pulumi_datarobot as datarobot
-{%- if include_prediction_environment %}import datarobot as dr{%- endif %}
+{% if include_prediction_environment %}import datarobot as dr{% endif %}
 
 __all__ = ["use_case",{% if include_prediction_environment %} "prediction_environment",{% endif %} "project_dir"]
 
