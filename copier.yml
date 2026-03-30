@@ -47,11 +47,5 @@ include_core:
   default: false
   help: "Include the `core` library package for multi-component recipes?"
 
-include_prediction_environment:
-  type: bool
-  default: false
-  help: "Include a global prediction environment resource in the infrastructure?"
-
-
 _subdirectory: template
 _answers_file: .datarobot/answers/base.yml
