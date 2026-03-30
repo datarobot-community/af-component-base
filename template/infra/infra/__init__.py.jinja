@@ -21,9 +21,8 @@ from pathlib import Path
 from datarobot_pulumi_utils.pulumi.stack import PROJECT_NAME
 import pulumi
 import pulumi_datarobot as datarobot
-{% if include_prediction_environment %}import datarobot as dr{% endif %}
 
-__all__ = ["use_case",{% if include_prediction_environment %} "prediction_environment",{% endif %} "project_dir"]
+__all__ = ["use_case", "project_dir"]
 
 project_dir = Path(__file__).parent.parent
 
@@ -39,20 +38,3 @@ else:
         resource_name=f"{{template_name}} [{PROJECT_NAME}]",
         description="""{{template_description}}""",
     )
-{%- if include_prediction_environment %}
-
-if prediction_environment_id := os.environ.get("DATAROBOT_DEFAULT_PREDICTION_ENVIRONMENT"):
-    pulumi.info(f"Using existing prediction environment '{prediction_environment_id}'")
-
-    prediction_environment = datarobot.PredictionEnvironment.get(
-        id=prediction_environment_id,
-        resource_name="{{template_name}} [PRE-EXISTING]",
-    )
-else:
-    prediction_environment = datarobot.PredictionEnvironment(
-        resource_name=f"{{template_name}} [{PROJECT_NAME}] Prediction Environment",
-        name=f"{{template_name}} [{PROJECT_NAME}]",
-        platform=dr.enums.PredictionEnvironmentPlatform.DATAROBOT_SERVERLESS,
-        opts=pulumi.ResourceOptions(retain_on_delete=False),
-    )
-{%- endif %}
