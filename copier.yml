@@ -10,16 +10,6 @@ template_code_name:
   default: "{{ template_name|lower|replace(' ', '-') }}"
   help: "The code friendly (lowercase, dashes/underscores instead of spaces"
 
-oss_repo_name:
-  type: str
-  default: "recipe-amazing-community"
-  help: "The name of your Application Template in the `datarobot-community` GitHub org"
-
-private_repo_name:
-  type: str
-  default: "recipe-amazing-internal"
-  help: "The name of your Application Template in the `datarobot` GitHub org"
-
 template_description:
   type: str
   default: |
@@ -32,19 +22,9 @@ copyright_year:
   default: 2026
   help: "The current year to register copyright properly in the license file"
 
-github_owner_group:
-  type: str
-  default: "@datarobot/customer-engineering"
-  help: "The GitHub team or username that will own the repository for this application template"
-
-harness_org_id:
-  type: str
-  default: "No_Code_Apps"
-  help: "Harness organization where project-related tasks will be executed"
-
 include_core:
   type: bool
-  default: false
+  default: true
   help: "Include the `core` library package for multi-component recipes?"
 
 _subdirectory: template
