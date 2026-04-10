@@ -37,7 +37,8 @@ This component is intended for app developers starting a new App Framework proje
 - [Prerequisites](#prerequisites)
 - [Quick start](#quick-start)
 - [Component dependencies](#component-dependencies)
-- [Local development](#local-development)
+  - [Local development](#local-development)
+  - [Updating](#updating)
 - [Troubleshooting](#troubleshooting)
 - [Next steps and cross-links](#next-steps-and-cross-links)
 - [Contributing, changelog, support, and legal](#contributing-changelog-support-and-legal)
@@ -48,7 +49,7 @@ This component is intended for app developers starting a new App Framework proje
 - [`uv`](https://docs.astral.sh/uv/) installed
 - [`dr`](https://cli.datarobot.com) installed
 
-A DataRobot account and environment are required to deploy the resulting application. See [DataRobot Getting Started](https://docs.datarobot.com/en/docs/get-started/) for account setup.
+A DataRobot account and environment are required to deploy the resulting application. See [DataRobot getting started](https://docs.datarobot.com/en/docs/get-started/) for account setup.
 
 # Quick start
 
@@ -58,7 +59,7 @@ Run the following command in your project directory:
 dr component add https://github.com/datarobot-community/af-component-base .
 ```
 
-Alternatively, you can use `uvx` copier:
+If you need additional control, you can run this to use copier directly:
 
 ```bash
 uvx copier copy datarobot-community/af-component-base .
@@ -66,25 +67,19 @@ uvx copier copy datarobot-community/af-component-base .
 
 The wizard prompts for:
 
-- **Template name** — human-readable display name (e.g. `My Sales Assistant`)
-- **Template code name** — auto-derived lowercase slug; override if needed
-- **Template description** — Markdown-compatible description shown in the App Framework gallery
-- **Copyright year** — defaults to the current year
-- **Include core library** — whether to include the shared `core` package for multi-component recipes (default: yes)
-
-To update the base component after a new version is released:
-
-```bash
-uvx copier update -a .datarobot/answers/base.yml -A
-```
+- **Template name**&mdash;human-readable display name (e.g. `My Sales Assistant`).
+- **Template code name**&mdash;auto-derived lowercase slug; override if needed.
+- **Template description**&mdash;Markdown-compatible description shown in the App Framework gallery.
+- **Copyright year**&mdash;defaults to the current year.
+- **Include core library**&mdash;whether to include the shared `core` package for multi-component recipes (default: yes).
 
 # Component dependencies
 
-This component has no required component dependencies. It is the root of every App Framework component graph.
+`af-component-base` has no required component dependencies. It is the root of the App Framework component graph — all other components build on top of it.
 
-# Local development
+## Local development
 
-`af-component-base` is a [copier](https://copier.readthedocs.io/) template, not a runnable service. All source files live under `template/`, which copier renders into the target project directory at apply time.
+`af-component-base` is a copier template, not a runnable service. All source files live under `template/`, which copier renders into the target project directory at apply time.
 
 To work on the template itself:
 
@@ -98,7 +93,26 @@ uvx copier copy . /tmp/my-test-app
 
 The `copier.yml` at the repo root defines all template questions and their defaults. The answers file path is `.datarobot/answers/base.yml` in the target project.
 
+## Updating
+
+All components should be regularly updated to pick up bug fixes, new features,
+and compatibility with the latest DataRobot App Framework.
+
+For automatic updates to the latest version, run the following command in your project directory:
+```bash
+dr component update .datarobot/answers/base.yml
+```
+
+If you need more fine grained control and prefer using copier directly,
+you can run this to have more control over the process:
+
+```bash
+uvx copier update -a .datarobot/answers/base.yml -A
+```
+
 # Troubleshooting
+
+This section covers common issues when applying or updating the component.
 
 **copier asks questions I already answered**
 
@@ -110,7 +124,7 @@ uvx copier update -a .datarobot/answers/base.yml -A
 
 **`dr component add` is not found**
 
-Install or update the DataRobot CLI: see [cli.datarobot.com](https://cli.datarobot.com) for installation instructions.
+Install or update the DataRobot CLI. See [cli.datarobot.com](https://cli.datarobot.com) for installation instructions.
 
 **Template conflicts after `copier update`**
 
@@ -118,9 +132,11 @@ Copier shows a diff for any file with local modifications. Review each conflict,
 
 # Next steps and cross-links
 
-- [App Framework documentation](https://af.datarobot.com) — full component catalog, architecture guide, and deployment docs
-- [DataRobot CLI](https://cli.datarobot.com) — `dr component add`, `dr deploy`, and other workflow commands
-- [App Framework Studio (internal)](https://datarobot.atlassian.net/wiki/spaces/BOPS/pages/6542032899/App+Framework+-+Studio) — internal design and planning context
+After applying this component, add further functionality by layering additional App Framework components on top.
+
+- [App Framework documentation](https://af.datarobot.com)&mdash;full component catalog, architecture guide, and deployment docs.
+- [DataRobot CLI](https://cli.datarobot.com)&mdash;`dr component add`, `dr deploy`, and other workflow commands.
+- [App Framework Studio (internal)](https://datarobot.atlassian.net/wiki/spaces/BOPS/pages/6542032899/App+Framework+-+Studio)&mdash;internal design and planning context.
 
 # Contributing, changelog, support, and legal
 
