@@ -1,0 +1,3 @@
+module: af-component-base
+short_description: "The base component required for all AF built apps"
+repeatable: false
