@@ -1,0 +1,18 @@
+site_name: Component Documentation
+docs_dir: ..
+site_dir: ../../site
+
+hooks:
+  - hooks.py
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.top
+    - search.highlight
+
+exclude_docs: |
+  Taskfile.yaml
+  Taskfile.yml
+  .bin/**
