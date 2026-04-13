@@ -1,7 +1,9 @@
-"""properdocs hook: generate docs/README.md with LLM-friendly TOC on every build."""
+"""properdocs hooks: generate docs/README.md and inject CSS from .bin/."""
 
 import re
 from pathlib import Path
+
+from mkdocs.structure.files import File
 
 EXCLUDED_NAMES = {"README.md", "Taskfile.yaml", "Taskfile.yml"}
 
@@ -31,8 +33,17 @@ def _extract_title(content: str, fallback: str) -> str:
 def _extract_description(content: str) -> str:
     """Return the first non-heading, non-empty paragraph line."""
     in_fence = False
-    for line in content.splitlines():
+    in_frontmatter = False
+    lines = content.splitlines()
+    for i, line in enumerate(lines):
         stripped = line.strip()
+        if i == 0 and stripped == "---":
+            in_frontmatter = True
+            continue
+        if in_frontmatter:
+            if stripped in ("---", "..."):
+                in_frontmatter = False
+            continue
         if stripped.startswith("```"):
             in_fence = not in_fence
             continue
@@ -53,11 +64,12 @@ def _build_readme(doc_files: list[Path], docs_dir: Path) -> str:
         title = _extract_title(content, fallback)
         description = _extract_description(content)
 
-        toc_lines.append(f"- [{title}]({relative})")
+        posix = relative.as_posix()
+        toc_lines.append(f"- [{title}]({posix})")
         if description:
             toc_lines.append(f"  {description}")
 
-        docs_yaml.append(f"  - {relative}")
+        docs_yaml.append(f"  - {posix}")
 
     toc = "\n".join(toc_lines)
     docs_list = "\n".join(docs_yaml)
@@ -75,6 +87,21 @@ docs:
 
 {toc}
 """
+
+
+def on_files(files, config):
+    """Inject static assets from .bin/ into the site without exposing them in docs_dir."""
+    bin_dir = Path(__file__).parent
+    for asset in (bin_dir / "stylesheets").glob("*.css"):
+        files.append(
+            File(
+                path=f"stylesheets/{asset.name}",
+                src_dir=str(bin_dir),
+                dest_dir=config["site_dir"],
+                use_directory_urls=config["use_directory_urls"],
+            )
+        )
+    return files
 
 
 def on_pre_build(config) -> None:
