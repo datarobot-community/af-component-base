@@ -7,11 +7,11 @@ The base component is required for every App Framework application template. It 
 | Sub-component | Optional | Description |
 |---|---|---|
 | **Infrastructure** | No | Pulumi project, task runner, and CI/CD scaffolding. |
-| **core library** | Yes | Shared Python package included when your recipe has more than one component that needs common utilities. |
+| **Core library** | Yes | Shared Python package included when your recipe has more than one component that needs common utilities. |
 
 ## Infrastructure (IaC)
 
-The base component lays down the Pulumi project that every other component extends. When you apply additional components (FastAPI backend, agent, etc.), they each register their own Pulumi resources into the same stack. It also creates the DataRobot use case for all other components to use for organization, and scaffolds out our feature flag verification system.
+The base component lays down the Pulumi project that every other component extends. When you apply additional components (FastAPI backend, agent, etc.), they each register their own Pulumi resources into the same stack. It also creates the DataRobot Use Case for all other components to use for organization and scaffolds out the feature flag verification system.
 
 ### Infra folder structure
 
@@ -71,7 +71,7 @@ If your recipe has only one component, you can skip `core` and put shared code d
 
 ### Persistent file system
 
-DataRobot Custom Applications are stateless by default. The `core.persistent_fs` module provides a persistent file system API backed by the DataRobot Key-Value store, giving your app durable storage without an external database.
+DataRobot Applications are stateless by default. The `core.persistent_fs` module provides a persistent file system API backed by the DataRobot Key-Value store, giving your app durable storage without an external database.
 
 **`DRFileSystem`**&mdash;an [fsspec](https://filesystem-spec.readthedocs.io/)-compatible file system that reads and writes files to the DataRobot file storage API. It transparently syncs a local cache with remote storage, so you can use it with any library that accepts an fsspec file system.
 
@@ -164,7 +164,7 @@ The base component records your answers in `.datarobot/answers/base.yml`. These 
 
 ## Best practices
 
-- **Put only shared code in `core`.**&mdash;Code that is only used by one component belongs in that component. `core` is for genuinely shared utilities.
-- **Use the persistent drivers in production.**&mdash;`DRFileSystem`, `connect_dr_fs` (SQLite), and `connect_dr_fs` (DuckDB) all fall back gracefully to local-only mode when `APPLICATION_ID` is absent, so you can develop locally without any changes.
-- **Protect shared state with the RW lock.**&mdash;If multiple FastAPI background tasks or request handlers access the same in-memory state, use `ThreadReadWriteLock` to avoid race conditions.
-- **Keep `configurations/` clean.**&mdash;Only place swappable infrastructure modules in `configurations/`. Fixed resources that are always deployed belong directly in `infra/infra/`.
+- **Put only shared code in `core`**&mdash;Code that is only used by one component belongs in that component. `core` is for genuinely shared utilities.
+- **Use the persistent drivers in production**&mdash;`DRFileSystem`, `connect_dr_fs` (SQLite), and `connect_dr_fs` (DuckDB) all fall back gracefully to local-only mode when `APPLICATION_ID` is absent, so you can develop locally without any changes.
+- **Protect shared state with the RW lock**&mdash;If multiple FastAPI background tasks or request handlers access the same in-memory state, use `ThreadReadWriteLock` to avoid race conditions.
+- **Keep `configurations/` clean**&mdash;Only place swappable infrastructure modules in `configurations/`. Fixed resources that are always deployed belong directly in `infra/infra/`.
