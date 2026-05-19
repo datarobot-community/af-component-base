@@ -38,3 +38,5 @@ else:
         resource_name=f"{{template_name}} [{PROJECT_NAME}]",
         description="""{{template_description}}""",
     )
+
+pulumi.export("DATAROBOT_USE_CASE_ID", use_case.id)
