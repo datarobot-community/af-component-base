@@ -17,13 +17,13 @@ dr task run infra:down-yes
 One-time setup (deploys backing infrastructure and prints OTel credentials):
 
 ```shell
-task start
+dr start
 ```
 
 Re-print OTel credentials without re-deploying:
 
 ```shell
-task infra:local-experimentation-otel-setup
+dr task run infra:local-experimentation-otel-setup
 ```
 
 ## Local Tracing (OTel)
@@ -38,4 +38,4 @@ task infra:tracing:start   # start local OTel dashboard
 task infra:tracing:stop    # stop local OTel dashboard
 ```
 
-See [docs/local-tracing.md](../docs/local-tracing.md) for full setup.
+See [docs/base/local-tracing.md](../docs/base/local-tracing.md) for full setup.

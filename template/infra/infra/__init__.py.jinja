@@ -18,6 +18,7 @@ Core and first Pulumi set of resources.
 import os
 from pathlib import Path
 
+from datarobot_pulumi_utils.pulumi import export
 from datarobot_pulumi_utils.pulumi.stack import PROJECT_NAME
 import pulumi
 import pulumi_datarobot as datarobot
@@ -39,4 +40,15 @@ else:
         description="""{{template_description}}""",
     )
 
-pulumi.export("DATAROBOT_USE_CASE_ID", use_case.id)
+export("DATAROBOT_USE_CASE_ID", use_case.id)
+
+datarobot_base_url = os.environ.get("DATAROBOT_ENDPOINT", "").rstrip("/").removesuffix("/api/v2")
+export("OTEL_EXPORTER_OTLP_ENDPOINT", f"{datarobot_base_url}/otel")
+export(
+    "OTEL_EXPORTER_OTLP_HEADERS",
+    pulumi.Output.format(
+        "x-datarobot-entity-id=experiment_container-{0},x-datarobot-api-key={1}",
+        use_case.id,
+        os.environ["DATAROBOT_API_TOKEN"],
+    ),
+)
