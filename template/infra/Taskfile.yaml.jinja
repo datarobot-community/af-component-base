@@ -134,9 +134,8 @@ tasks:
 
   tracing:start:
     silent: true
-    desc: "📡 Start the local experimentation tracing dashboard"
+    desc: "📡 Start the local experimentation tracing dashboard (Ctrl+C to stop)"
     cmds:
-      - task: tracing:stop
       - |
         USE_CASE_ID=$({{ "{{.UV_CMD}}" }} run pulumi stack output DATAROBOT_USE_CASE_ID 2>/dev/null)
         if [[ -z "$USE_CASE_ID" ]]; then
@@ -144,18 +143,6 @@ tasks:
           exit 1
         fi
         dr experimentation --entity-type experiment_container --entity-id "$USE_CASE_ID"
-
-  tracing:stop:
-    silent: true
-    desc: "🛑 Stop the local experimentation tracing dashboard"
-    cmds:
-      - |
-        PID=$(lsof -ti :8090 -sTCP:LISTEN 2>/dev/null | sort -u || true)
-        if [[ -n "$PID" ]]; then
-          kill $PID && echo "Tracing dashboard stopped."
-        else
-          echo "Tracing dashboard is not running."
-        fi
 
   install:
     desc: "🔧 Install dependencies"

@@ -51,13 +51,13 @@ task dev
 
 **Option A — DataRobot UI:** Navigate to your Use Case in DataRobot and open the **Tracing** tab. Use the app, then refresh — traces arrive within a few seconds.
 
-**Option B — Local dashboard** (no browser login required, great for dev): use `task infra:tracing:start`, or manually:
+**Option B — Local dashboard** (no browser login required, great for dev):
 
 ```bash
-dr experimentation --entity-type experiment_container --entity-id <use-case-id>
+task infra:tracing:start
 ```
 
-Runs in the foreground (Ctrl+C to stop). Opens http://127.0.0.1:8090 — traces appear in real time.
+Runs in the foreground — Ctrl+C to stop. Opens http://127.0.0.1:8090 with traces in real time.
 
 ---
 

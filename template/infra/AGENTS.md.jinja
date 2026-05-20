@@ -31,11 +31,10 @@ dr task run infra:local-experimentation-otel-setup
 OTel write header must use `experiment_container-<use-case-id>`, **not** `use_case-<id>`.
 The DR authorization API stores use cases internally as `experiment_container`; `use_case` is the user-facing alias accepted only by the read APIs.
 
-Local dashboard: `dr experimentation --entity-type experiment_container --entity-id <id>` → http://127.0.0.1:8090 (runs in foreground, Ctrl+C to stop)
+Local dashboard (runs in foreground, Ctrl+C to stop):
 
 ```shell
-task infra:tracing:start   # start local OTel dashboard
-task infra:tracing:stop    # stop local OTel dashboard
+task infra:tracing:start
 ```
 
 See [docs/base/local-tracing.md](../docs/base/local-tracing.md) for full setup.
