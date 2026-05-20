@@ -88,7 +88,17 @@ tasks:
       - auth-check
     cmds:
       - task: deploy-dev
-      - task: local-experimentation-otel-setup
+      - |
+        USE_CASE_ID=$({{ "{{.UV_CMD}}" }} run pulumi stack output DATAROBOT_USE_CASE_ID 2>/dev/null) || true
+        BASE="${DATAROBOT_ENDPOINT%/}"
+        BASE="${BASE%/api/v2}"
+        echo ""
+        echo "✅ Infrastructure deployed."
+        if [[ -n "$USE_CASE_ID" ]]; then
+          echo "📊 View traces: ${BASE}/usecases/${USE_CASE_ID}/tracing"
+          echo "📡 Local dashboard: task infra:tracing:start"
+        fi
+        echo ""
 
   deploy-dev:
     silent: true
@@ -102,35 +112,6 @@ tasks:
       - |
         export PULUMI_SKIP_UPDATE_CHECK=1 && {{ "{{.UV_CMD}}" }} run pulumi up -y \
           --target "**datarobot:index/useCase:UseCase**"
-
-  local-experimentation-otel-setup:
-    silent: true
-    internal: true
-    desc: "📡 Print OTel env vars for local tracing"
-    cmds:
-      - |
-        if [[ "${OTEL_SDK_DISABLED:-}" == "true" || "${OTEL_SDK_DISABLED:-}" == "1" ]]; then
-          echo "OTEL_SDK_DISABLED is set — skipping OTel setup"
-          exit 0
-        fi
-        USE_CASE_ID=$({{ "{{.UV_CMD}}" }} run pulumi stack output DATAROBOT_USE_CASE_ID 2>/dev/null) || {
-          echo "Could not read DATAROBOT_USE_CASE_ID from Pulumi stack — skipping OTel setup"
-          exit 0
-        }
-        BASE="${DATAROBOT_ENDPOINT%/}"
-        BASE="${BASE%/api/v2}"
-        ENTITY_ID="experiment_container-${USE_CASE_ID}"
-        echo ""
-        echo "Add these to your .env for local tracing:"
-        echo ""
-        echo "  OTEL_EXPORTER_OTLP_ENDPOINT=${BASE}/otel"
-        echo "  OTEL_EXPORTER_OTLP_HEADERS=x-datarobot-entity-id=${ENTITY_ID},x-datarobot-api-key=${DATAROBOT_API_TOKEN}"
-        echo ""
-        echo "View traces: ${BASE}/usecases/${USE_CASE_ID}/tracing"
-        echo ""
-        echo "Or run a local dashboard (no browser login required):"
-        echo "  dr experimentation --entity-type experiment_container --entity-id ${USE_CASE_ID}"
-        echo ""
 
   tracing:start:
     silent: true

@@ -28,18 +28,7 @@ The DataRobot OTel collector overwrites `service.name` with the entity ID, so al
 dr start
 ```
 
-This deploys the backing infrastructure and writes the OTel credentials to `pulumi_config.json`:
-
-- `OTEL_EXPORTER_OTLP_ENDPOINT` — the DataRobot OTel collector URL
-- `OTEL_EXPORTER_OTLP_HEADERS` — auth header with your entity ID and API token
-
-`DataRobotAppFrameworkBaseSettings` reads `pulumi_config.json` automatically, so OTel is configured for local dev without any further steps.
-
-To print the current values without re-deploying:
-
-```bash
-dr task run infra:local-experimentation-otel-setup
-```
+This deploys the backing infrastructure and writes the OTel credentials (`OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS`) to `pulumi_config.json`. `DataRobotAppFrameworkBaseSettings` reads that file automatically, so local OTel is configured with no further steps.
 
 ### 2. Start local dev
 
@@ -94,8 +83,8 @@ Or simply omit `OTEL_EXPORTER_OTLP_ENDPOINT` from `pulumi_config.json`/`.env` �
 **The app logs an error about missing `OTEL_EXPORTER_OTLP_HEADERS`.**
 - `OTEL_EXPORTER_OTLP_ENDPOINT` is set but `OTEL_EXPORTER_OTLP_HEADERS` is missing. Without auth headers, every request is rejected. Re-run `dr start` to refresh `pulumi_config.json`, or add `OTEL_EXPORTER_OTLP_HEADERS` to `.env` manually.
 
-**`dr task run infra:local-experimentation-otel-setup` prints "Could not read DATAROBOT_USE_CASE_ID".**
-- The Pulumi stack hasn't been deployed yet. Run `dr start` to create the backing infrastructure first.
+**OTel vars are missing from `pulumi_config.json` after `dr start`.**
+- The Pulumi stack may not have deployed successfully. Re-run `dr start` to redeploy and regenerate the file.
 
 **I get HTTP 401 when using `use_case-<id>` as the entity header.**
 - The DataRobot OTel collector's authorization API stores use cases under the internal type `experiment_container`. Use `experiment_container-<id>` in `OTEL_EXPORTER_OTLP_HEADERS` — this is what `dr start` writes automatically. The read APIs (dashboard, Tracing tab) accept `use_case` as the entity type; only the write header requires `experiment_container`.

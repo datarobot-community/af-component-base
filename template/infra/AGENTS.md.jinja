@@ -20,12 +20,6 @@ One-time setup (deploys backing infrastructure and prints OTel credentials):
 dr start
 ```
 
-Re-print OTel credentials without re-deploying:
-
-```shell
-dr task run infra:local-experimentation-otel-setup
-```
-
 ## Local Tracing (OTel)
 
 OTel write header must use `experiment_container-<use-case-id>`, **not** `use_case-<id>`.
