@@ -11,3 +11,24 @@ In case the deployment process fails, you can try deleting it by running the fol
 ```shell
 dr task run infra:down-yes
 ```
+
+## Local Development
+
+One-time setup (deploys backing infrastructure and prints OTel credentials):
+
+```shell
+dr start
+```
+
+## Local Tracing (OTel)
+
+OTel write header must use `experiment_container-<use-case-id>`, **not** `use_case-<id>`.
+The DR authorization API stores use cases internally as `experiment_container`; `use_case` is the user-facing alias accepted only by the read APIs.
+
+Local dashboard (runs in foreground, Ctrl+C to stop):
+
+```shell
+task infra:tracing:start
+```
+
+See [docs/base/local-tracing.md](../docs/base/local-tracing.md) for full setup.
