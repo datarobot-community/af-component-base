@@ -51,6 +51,6 @@ export(
     pulumi.Output.format(
         "x-datarobot-entity-id=experiment_container-{0},x-datarobot-api-key={1}",
         use_case.id,
-        os.environ["DATAROBOT_API_TOKEN"],
+        os.environ.get("DATAROBOT_API_TOKEN", ""),
     ),
 )
