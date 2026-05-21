@@ -81,6 +81,31 @@ tasks:
           --server {{ "{{.PULUMI_DATAROBOT_DEFAULT_URL}}" }}
         fi
 
+  start:
+    silent: true
+    desc: "💻 Deploy backing infrastructure"
+    deps:
+      - auth-check
+    cmds:
+      - task: deploy-dev
+      - |
+        echo ""
+        echo "✅ Infrastructure deployed."
+        echo ""
+
+  deploy-dev:
+    silent: true
+    aliases: [up-dev]
+    desc: "🔨 Deploy the backend infrastructure for local development"
+    deps:
+      - auth-check
+    cmds:
+      - task: pulumi-datarobot-plugin-check
+      - echo "🔨 Deploying the backend infrastructure.."
+      - |
+        export PULUMI_SKIP_UPDATE_CHECK=1 && {{ "{{.UV_CMD}}" }} run pulumi up -y \
+          --target "**datarobot:index/useCase:UseCase**"
+
   install:
     desc: "🔧 Install dependencies"
     cmds:
