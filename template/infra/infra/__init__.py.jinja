@@ -55,6 +55,6 @@ export(
     ),
 )
 pulumi.export(
-    "DATAROBOT_TRACING_URL",
+    "Local tracing dashboard (open in browser to view traces)",
     pulumi.Output.format("{0}/usecases/{1}/tracing", datarobot_base_url, use_case.id),
 )
