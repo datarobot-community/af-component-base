@@ -89,15 +89,8 @@ tasks:
     cmds:
       - task: deploy-dev
       - |
-        USE_CASE_ID=$({{ "{{.UV_CMD}}" }} run pulumi stack output DATAROBOT_USE_CASE_ID 2>/dev/null) || true
-        BASE="${DATAROBOT_ENDPOINT%/}"
-        BASE="${BASE%/api/v2}"
         echo ""
         echo "✅ Infrastructure deployed."
-        if [[ -n "$USE_CASE_ID" ]]; then
-          echo "📊 View traces: ${BASE}/usecases/${USE_CASE_ID}/tracing"
-          echo "📡 Local dashboard: task infra:tracing:start"
-        fi
         echo ""
 
   deploy-dev:
@@ -115,6 +108,7 @@ tasks:
 
   tracing:start:
     silent: true
+    internal: true
     desc: "📡 Start the local experimentation tracing dashboard (Ctrl+C to stop)"
     cmds:
       - |
