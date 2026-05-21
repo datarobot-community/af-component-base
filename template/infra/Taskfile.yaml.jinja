@@ -106,19 +106,6 @@ tasks:
         export PULUMI_SKIP_UPDATE_CHECK=1 && {{ "{{.UV_CMD}}" }} run pulumi up -y \
           --target "**datarobot:index/useCase:UseCase**"
 
-  tracing:start:
-    silent: true
-    internal: true
-    desc: "📡 Start the local experimentation tracing dashboard (Ctrl+C to stop)"
-    cmds:
-      - |
-        USE_CASE_ID=$({{ "{{.UV_CMD}}" }} run pulumi stack output DATAROBOT_USE_CASE_ID 2>/dev/null)
-        if [[ -z "$USE_CASE_ID" ]]; then
-          echo "No Use Case found in current Pulumi stack. Run 'task infra:start' first."
-          exit 1
-        fi
-        dr experimentation --entity-type experiment_container --entity-id "$USE_CASE_ID"
-
   install:
     desc: "🔧 Install dependencies"
     cmds:
