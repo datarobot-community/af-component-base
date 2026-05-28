@@ -1,0 +1,74 @@
+---
+# https://taskfile.dev
+#
+# Local validation for the af-component-base copier template.
+# `task validate` is the full equivalent of the GitHub Actions workflow at
+# .github/workflows/validate-template.yaml — keep them in sync.
+version: '3'
+
+vars:
+  WITH_CORE_DIR: mytemplate
+  NO_CORE_DIR: mytemplate-no-core
+
+tasks:
+  render:with-core:
+    desc: "📦 Render template with include_core=true into ./mytemplate"
+    cmds:
+      - rm -rf {{.WITH_CORE_DIR}}
+      - uvx copier copy . {{.WITH_CORE_DIR}} --data include_core=true --defaults
+
+  render:no-core:
+    desc: "📦 Render template with include_core=false into ./mytemplate-no-core"
+    cmds:
+      - rm -rf {{.NO_CORE_DIR}}
+      - uvx copier copy . {{.NO_CORE_DIR}} --data include_core=false --defaults
+
+  render:
+    desc: "📦 Render both variants (with-core + no-core)"
+    cmds:
+      - task: render:with-core
+      - task: render:no-core
+
+  lint:yaml:
+    desc: "🧹 yamlfmt -lint on both rendered outputs"
+    cmds:
+      - yamlfmt -conf .yamlfmt.yml -lint ./{{.WITH_CORE_DIR}}
+      - yamlfmt -conf .yamlfmt.yml -lint ./{{.NO_CORE_DIR}}
+
+  test:core:
+    desc: "🧪 Install + lint-check + pytest in the rendered core/ project"
+    dir: "{{.WITH_CORE_DIR}}/core"
+    cmds:
+      - task install
+      - task lint-check
+      - task test
+
+  test:infra:
+    desc: "🧪 Install + lint-check + unit tests in the rendered with-core infra/ project"
+    dir: "{{.WITH_CORE_DIR}}/infra"
+    cmds:
+      - task install
+      - task lint-check
+      - task unit
+
+  test:infra-no-core:
+    desc: "🧪 Same as test:infra against the no-core rendered project"
+    dir: "{{.NO_CORE_DIR}}/infra"
+    cmds:
+      - task install
+      - task lint-check
+      - task unit
+
+  validate:
+    desc: "✅ Full local equivalent of CI: render both variants, yamlfmt, lint, and test"
+    cmds:
+      - task: render
+      - task: lint:yaml
+      - task: test:core
+      - task: test:infra
+      - task: test:infra-no-core
+
+  clean:
+    desc: "🧹 Remove rendered output directories"
+    cmds:
+      - rm -rf {{.WITH_CORE_DIR}} {{.NO_CORE_DIR}}
