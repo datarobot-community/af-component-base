@@ -88,6 +88,7 @@ The `copier.yml` at the repo root defines all template questions and their defau
 - [`uv`](https://docs.astral.sh/uv/) — provides `uvx copier`
 - [Task](https://taskfile.dev) — task runner (`brew install go-task/tap/go-task` or see [installation](https://taskfile.dev/installation/))
 - [`yamlfmt`](https://github.com/google/yamlfmt) — install with `go install github.com/google/yamlfmt/cmd/yamlfmt@latest`
+- [`dr`](https://cli.datarobot.com) — the DataRobot CLI (used to run the rendered project's own checks the way end users will)
 
 ### Validating a change
 
@@ -97,7 +98,7 @@ The repo root has a `Taskfile.yaml` that renders the template into `mytemplate/`
 task validate
 ```
 
-This renders both `include_core=true` and `include_core=false` variants, runs `yamlfmt -lint` on each, and then runs the rendered project's own `task install && task lint-check && task test|unit` for `core/` and `infra/`. CI (`.github/workflows/validate-template.yaml`) runs the same command across Python 3.11, 3.12, and 3.13.
+This renders both `include_core=true` and `include_core=false` variants, runs `yamlfmt -lint` on each, and then runs the rendered project's own `dr task install`, `dr task <ns>:lint-check`, and `dr task <ns>:test|unit` for the appropriate components. CI (`.github/workflows/validate-template.yaml`) runs the same command across Python 3.11, 3.12, and 3.13.
 
 For fast iteration, run individual subtasks:
 
@@ -105,9 +106,8 @@ For fast iteration, run individual subtasks:
 task render:with-core        # render mytemplate/ with include_core=true
 task render:no-core          # render mytemplate-no-core/ with include_core=false
 task lint:yaml               # yamlfmt -lint on both rendered outputs
-task test:core               # install + lint-check + pytest in mytemplate/core
-task test:infra              # install + lint-check + unit in mytemplate/infra
-task test:infra-no-core      # same as test:infra against the no-core render
+task validate:with-core      # install + lint-check + test in mytemplate via dr task
+task validate:no-core        # install + lint-check + test in mytemplate-no-core via dr task
 task clean                   # rm -rf mytemplate mytemplate-no-core
 ```
 

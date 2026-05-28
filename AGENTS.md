@@ -18,22 +18,30 @@ The one command to verify a change locally is:
 task validate
 ```
 
-It renders the template twice — once with `include_core=true` into `mytemplate/` and once with `include_core=false` into `mytemplate-no-core/` — runs `yamlfmt -lint` on both, then runs `task install && task lint-check && task test|unit` inside the rendered `core/` and `infra/` projects. This is the exact same sequence the GitHub Actions workflow runs.
+It renders the template twice — once with `include_core=true` into `mytemplate/` and once with `include_core=false` into `mytemplate-no-core/` — runs `yamlfmt -lint` on both, then invokes the rendered project's checks through `dr task` (the workflow end users will run). This is the exact same sequence the GitHub Actions workflow runs.
 
 For fast iteration during edits, the granular subtasks are:
 
-| Task                      | What it does                                                                |
-|---------------------------|-----------------------------------------------------------------------------|
-| `task render:with-core`   | `uvx copier copy . mytemplate --data include_core=true --defaults`          |
-| `task render:no-core`     | Same with `include_core=false` → `mytemplate-no-core/`                      |
-| `task render`             | Both of the above                                                           |
-| `task lint:yaml`          | yamlfmt -lint on both rendered outputs                                      |
-| `task test:core`          | `cd mytemplate/core && task install && task lint-check && task test`        |
-| `task test:infra`         | `cd mytemplate/infra && task install && task lint-check && task unit`       |
-| `task test:infra-no-core` | Same as `test:infra` against `mytemplate-no-core/infra`                     |
-| `task clean`              | `rm -rf mytemplate mytemplate-no-core`                                      |
+| Task                      | What it does                                                                                              |
+|---------------------------|-----------------------------------------------------------------------------------------------------------|
+| `task render:with-core`   | `uvx copier copy . mytemplate --data include_core=true --defaults`                                        |
+| `task render:no-core`     | Same with `include_core=false` → `mytemplate-no-core/`                                                    |
+| `task render`             | Both of the above                                                                                         |
+| `task lint:yaml`          | yamlfmt -lint on both rendered outputs                                                                    |
+| `task validate:with-core` | `cd mytemplate && dr task install && dr task core:lint-check && dr task infra:lint-check && dr task core:test && dr task infra:unit` |
+| `task validate:no-core`   | `cd mytemplate-no-core && dr task install && dr task infra:lint-check && dr task infra:unit`              |
+| `task clean`              | `rm -rf mytemplate mytemplate-no-core`                                                                    |
 
-The `install` / `lint-check` / `test` / `unit` tasks invoked inside the rendered projects come from `template/{% if include_core %}core{% endif %}/Taskfile.yaml` and `template/infra/Taskfile.yaml.jinja` — read those to see what tooling actually runs (ruff, mypy, pytest).
+The `install` / `lint-check` / `test` / `unit` tasks invoked inside the rendered projects come from `template/{% if include_core %}core{% endif %}/Taskfile.yaml` and `template/infra/Taskfile.yaml.jinja` — read those to see what tooling actually runs (ruff, mypy, pytest). `dr task` composes a root Taskfile from the rendered subdirectories on first invocation.
+
+### Why namespaced `dr task <ns>:<task>` instead of `dr task lint` / `dr task test`?
+
+The composed aggregators have two gaps we can't paper over from this side:
+
+1. `dr task lint` runs each component's `lint` task, which **auto-fixes** (`ruff format`, `ruff check --fix`). For CI we need a read-only check, so we call `dr task core:lint-check` and `dr task infra:lint-check` directly.
+2. `dr task test` only aggregates components whose task name is literally `test`. `infra/Taskfile.yaml` exposes `unit`, not `test`, so it would be silently skipped. We call `dr task core:test` and `dr task infra:unit` explicitly.
+
+A follow-up could ship a `.Taskfile.template` in the rendered project that produces correct `lint-check` and `test` aggregators — at that point the root Taskfile here can simplify to `dr task lint-check` + `dr task test`.
 
 ## Two-branch rule
 
