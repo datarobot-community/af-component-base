@@ -54,7 +54,3 @@ export(
         os.environ.get("DATAROBOT_API_TOKEN", ""),
     ),
 )
-pulumi.export(
-    "Local tracing dashboard (open in browser to view traces)",
-    pulumi.Output.format("{0}/usecases/{1}/tracing", datarobot_base_url, use_case.id),
-)
