@@ -81,6 +81,22 @@ tasks:
           --server {{ "{{.PULUMI_DATAROBOT_DEFAULT_URL}}" }}
         fi
 
+  dr-experimentation-plugin-check:
+    silent: true
+    desc: "⬇️ Ensure DataRobot experimentation plugin is installed"
+    cmds:
+      - |
+        if command -v dr &> /dev/null; then
+          if dr plugin list 2>/dev/null | grep -qE '(^|[[:space:]])xp([[:space:]]|$)'; then
+            echo "ℹ️  DataRobot experimentation plugin 'xp' is already installed"
+          else
+            echo "⬇️ Installing DataRobot experimentation plugin 'xp'"
+            dr plugin install xp
+          fi
+        else
+          echo "ℹ️  Skipping experimentation plugin check (dr CLI not available)"
+        fi
+
   start:
     silent: true
     desc: "💻 Deploy backing infrastructure"
@@ -88,6 +104,7 @@ tasks:
       - auth-check
     cmds:
       - task: deploy-dev
+      - task: dr-experimentation-plugin-check
       - |
         echo ""
         echo "✅ Infrastructure deployed."
@@ -105,6 +122,34 @@ tasks:
       - |
         export PULUMI_SKIP_UPDATE_CHECK=1 && {{ "{{.UV_CMD}}" }} run pulumi up -y \
           --target "**datarobot:index/useCase:UseCase**"
+  use-case-id:
+    silent: true
+    desc: "🆔 Print DataRobot Use Case ID from the current Pulumi stack"
+    cmds:
+      - |
+        USE_CASE_ID=$({{.UV_CMD}} run pulumi stack output DATAROBOT_USE_CASE_ID 2>/dev/null)
+        if [[ -z "$USE_CASE_ID" ]]; then
+          echo "No Use Case found in current Pulumi stack." >&2
+          exit 1
+        fi
+        echo "$USE_CASE_ID"
+
+  dev:
+    silent: true
+    desc: "📡 Start the local experimentation tracing dashboard (with experiment_container as the default entity-type)"
+    cmds:
+      - |
+        USE_CASE_ID=$(task --silent use-case-id 2>/dev/null)
+        if [[ -z "$USE_CASE_ID" ]]; then
+          echo "No Use Case found in current Pulumi stack. Run 'task start' first."
+          exit 1
+        fi
+        if dr plugin list 2>/dev/null | grep -qE '(^|[[:space:]])xp([[:space:]]|$)'; then
+            dr xp --entity-id "$USE_CASE_ID" --plain-output
+          else
+            echo "DataRobot experimentation plugin not found. Please install it with 'dr plugin install xp' to use the tracing dashboard."
+            exit 1
+        fi
 
   install:
     desc: "🔧 Install dependencies"
