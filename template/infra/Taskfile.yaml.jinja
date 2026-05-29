@@ -27,7 +27,7 @@ vars:
       if [ -n "${PULUMI_DATAROBOT_PLUGIN_VERSION:-}" ]; then
         echo "${PULUMI_DATAROBOT_PLUGIN_VERSION}"
       else
-        echo "v0.10.30"
+        echo "v0.10.36"
       fi
 
   PULUMI_DATAROBOT_DEFAULT_URL:
@@ -38,7 +38,7 @@ vars:
       if [ -n "${PULUMI_DATAROBOT_DEFAULT_URL:-}" ]; then
         echo "${PULUMI_DATAROBOT_DEFAULT_URL}"
       else
-        echo "https://github.com/datarobot-community/pulumi-datarobot/releases/download/v0.10.30"
+        echo "https://github.com/datarobot-community/pulumi-datarobot/releases/download/v0.10.36"
       fi
 {%- if not include_core %}
   # Cross-platform environment cleaning - uses 'env -u' on Unix systems, falls back to empty string on Windows
@@ -80,6 +80,31 @@ tasks:
           {{ "{{.UV_CMD}}" }} run pulumi plugin install resource datarobot {{ "{{.PULUMI_DATAROBOT_PLUGIN_VERSION}}" }} \
           --server {{ "{{.PULUMI_DATAROBOT_DEFAULT_URL}}" }}
         fi
+
+  start:
+    silent: true
+    desc: "💻 Deploy backing infrastructure"
+    deps:
+      - auth-check
+    cmds:
+      - task: deploy-dev
+      - |
+        echo ""
+        echo "✅ Infrastructure deployed."
+        echo ""
+
+  deploy-dev:
+    silent: true
+    aliases: [up-dev]
+    desc: "🔨 Deploy the backend infrastructure for local development"
+    deps:
+      - auth-check
+    cmds:
+      - task: pulumi-datarobot-plugin-check
+      - echo "🔨 Deploying the backend infrastructure.."
+      - |
+        export PULUMI_SKIP_UPDATE_CHECK=1 && {{ "{{.UV_CMD}}" }} run pulumi up -y \
+          --target "**datarobot:index/useCase:UseCase**"
 
   install:
     desc: "🔧 Install dependencies"
