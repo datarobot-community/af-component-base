@@ -44,7 +44,7 @@ jobs:
 
       - name: Install dr CLI
         run: |
-          LATEST_TAG=$(curl -s https://api.github.com/repos/datarobot-oss/cli/releases/latest | grep '"tag_name"' | cut -d '"' -f 4)
+          LATEST_TAG=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/datarobot-oss/cli/releases/latest | grep '"tag_name"' | cut -d '"' -f 4)
           VERSION=${LATEST_TAG#v}
           curl -fsSL "https://github.com/datarobot-oss/cli/releases/download/${LATEST_TAG}/dr_v${VERSION}_Linux_x86_64.tar.gz" -o /tmp/dr.tar.gz
           tar -xzf /tmp/dr.tar.gz -C /tmp dr
