@@ -41,7 +41,7 @@ dr task run frontend_web:build
 The app is live — the non-zero exit came from a post-deploy cleanup step, not the app itself. Run the following to reconcile Pulumi state:
 
 ```shell
-dr task run infra:refresh
+dr task run infra:refresh -- -y
 ```
 
 Do not re-deploy.
@@ -50,7 +50,7 @@ Do not re-deploy.
 The source is still attached to a live application. Reconcile Pulumi state and retry:
 
 ```shell
-dr task run infra:refresh
+dr task run infra:refresh -- -y
 ```
 
 **Docker context error on first deploy**
