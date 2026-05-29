@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "DataRobot", email = "oss-community-management@datarobot.com" }
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
     "aiosqlite>=0.21.0,<0.22",
     "datarobot[auth-authlib,core]>=3.9.1",
