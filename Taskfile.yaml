@@ -1,0 +1,75 @@
+---
+# https://taskfile.dev
+#
+# Local validation for the af-component-base copier template.
+# `task validate` is the full equivalent of the GitHub Actions workflow at
+# .github/workflows/validate-template.yaml — keep them in sync.
+#
+# Validation runs the rendered project's checks through `dr task` so we exercise
+# the same workflow end users do. We invoke namespaced tasks (e.g.
+# `dr task core:lint-check`) rather than the composed `dr task lint` / `dr task
+# test` aggregators because the current aggregators (a) auto-fix lint instead of
+# checking, and (b) only include components with a literal `test` task —
+# `infra/Taskfile.yaml` exposes `unit`, not `test`, so it would be silently
+# skipped.
+version: '3'
+
+vars:
+  WITH_CORE_DIR: mytemplate
+  NO_CORE_DIR: mytemplate-no-core
+
+tasks:
+  render:with-core:
+    desc: "📦 Render template with include_core=true into ./mytemplate"
+    cmds:
+      - rm -rf {{.WITH_CORE_DIR}}
+      - uvx copier copy . {{.WITH_CORE_DIR}} --data include_core=true --defaults
+
+  render:no-core:
+    desc: "📦 Render template with include_core=false into ./mytemplate-no-core"
+    cmds:
+      - rm -rf {{.NO_CORE_DIR}}
+      - uvx copier copy . {{.NO_CORE_DIR}} --data include_core=false --defaults
+
+  render:
+    desc: "📦 Render both variants (with-core + no-core)"
+    cmds:
+      - task: render:with-core
+      - task: render:no-core
+
+  lint:yaml:
+    desc: "🧹 yamlfmt -lint on both rendered outputs"
+    cmds:
+      - yamlfmt -conf .yamlfmt.yml -lint ./{{.WITH_CORE_DIR}}
+      - yamlfmt -conf .yamlfmt.yml -lint ./{{.NO_CORE_DIR}}
+
+  validate:with-core:
+    desc: "✅ Install + lint-check + test in the with-core rendered project (via dr task)"
+    dir: "{{.WITH_CORE_DIR}}"
+    cmds:
+      - dr task install
+      - dr task core:lint-check
+      - dr task infra:lint-check
+      - dr task core:test
+      - dr task infra:unit
+
+  validate:no-core:
+    desc: "✅ Install + lint-check + test in the no-core rendered project (via dr task)"
+    dir: "{{.NO_CORE_DIR}}"
+    cmds:
+      - dr task install
+      - dr task infra:lint-check
+      - dr task infra:unit
+
+  validate:
+    desc: "✅ Full local equivalent of CI: render + yamlfmt + dr task checks for both variants"
+    cmds:
+      - task: render
+      - task: lint:yaml
+      - task: validate:with-core
+      - task: validate:no-core
+
+  clean:
+    desc: "🧹 Remove rendered output directories"
+    cmds:
+      - rm -rf {{.WITH_CORE_DIR}} {{.NO_CORE_DIR}}

@@ -84,17 +84,41 @@ The wizard prompts for:
 
 `af-component-base` is a copier template, not a runnable service. All source files live under `template/`, which copier renders into the target project directory at apply time.
 
-To work on the template itself:
+The `copier.yml` at the repo root defines all template questions and their defaults. The answers file path is `.datarobot/answers/base.yml` in the target project. See [AGENTS.md](AGENTS.md) for an agent-oriented orientation to this repo.
 
-1. Clone this repository.
-2. Edit files under `template/` or update questions in `copier.yml`.
-3. Test your changes against a scratch directory:
+### Prerequisites
+
+- [`uv`](https://docs.astral.sh/uv/) — provides `uvx copier`
+- [Task](https://taskfile.dev) — task runner (`brew install go-task/tap/go-task` or see [installation](https://taskfile.dev/installation/))
+- [`yamlfmt`](https://github.com/google/yamlfmt) — install with `go install github.com/google/yamlfmt/cmd/yamlfmt@latest`
+- [`dr`](https://cli.datarobot.com) — the DataRobot CLI (used to run the rendered project's own checks the way end users will)
+
+### Validating a change
+
+The repo root has a `Taskfile.yaml` that renders the template into `mytemplate/` (with the optional `core` library) and `mytemplate-no-core/`, then runs the same checks CI does. The single command to run everything is:
+
+```bash
+task validate
+```
+
+This renders both `include_core=true` and `include_core=false` variants, runs `yamlfmt -lint` on each, and then runs the rendered project's own `dr task install`, `dr task <ns>:lint-check`, and `dr task <ns>:test|unit` for the appropriate components. CI (`.github/workflows/validate-template.yaml`) runs the same command across Python 3.11, 3.12, and 3.13.
+
+For fast iteration, run individual subtasks:
+
+```bash
+task render:with-core        # render mytemplate/ with include_core=true
+task render:no-core          # render mytemplate-no-core/ with include_core=false
+task lint:yaml               # yamlfmt -lint on both rendered outputs
+task validate:with-core      # install + lint-check + test in mytemplate via dr task
+task validate:no-core        # install + lint-check + test in mytemplate-no-core via dr task
+task clean                   # rm -rf mytemplate mytemplate-no-core
+```
+
+For a one-off render outside the Taskfile (e.g. to manually inspect generated output), copier can be invoked directly:
 
 ```bash
 uvx copier copy . /tmp/my-test-app
 ```
-
-The `copier.yml` at the repo root defines all template questions and their defaults. The answers file path is `.datarobot/answers/base.yml` in the target project.
 
 ## Updating
 
