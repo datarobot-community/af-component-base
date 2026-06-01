@@ -22,17 +22,23 @@ dr start
 
 ## Pre-deploy Checklist
 
-Before running `dr task run infra:up-yes`, ensure the following are set in your `.env` file:
+Before running `dr task run infra:up-yes`, ask the user to ensure their environment is configured. The following variables must be set:
 
 - `DATAROBOT_API_TOKEN` and `DATAROBOT_ENDPOINT`
 - `PULUMI_CONFIG_PASSPHRASE`
 - `SESSION_SECRET_KEY` (required if using the FastAPI component)
 - `DATAROBOT_DEFAULT_EXECUTION_ENVIRONMENT` (required if your agent uses a custom execution environment)
 
-If using the React component, build the frontend before deploying:
+If the user hasn't set up their environment yet, ask them to run:
 
 ```shell
-dr task run frontend_web:build
+dr start
+```
+
+or
+
+```shell
+dr dotenv setup
 ```
 
 ## Troubleshooting
