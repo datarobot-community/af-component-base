@@ -25,7 +25,6 @@ from typing import (
     Any,
     BinaryIO,
     Callable,
-    Dict,
     List,
     Optional,
     ParamSpec,
@@ -37,8 +36,9 @@ from typing import (
 
 import datarobot as dr
 from datarobot.enums import FilesOverwriteStrategy
+from datarobot.enums import KeyValueEntityType as DRKeyValueEntityType
 from datarobot.fs import DataRobotFile, DataRobotFileSystem
-from datarobot.fs.file_system import FileInfo
+from datarobot.fs.file_system import FileInfo as BaseFileInfo
 from datarobot.models.files import File, Files
 from fsspec.spec import AbstractFileSystem
 
@@ -66,6 +66,32 @@ CATALOG_STORAGE_NAME = "fs_catalog"
 
 FILE_API_CONNECT_TIMEOUT = float(os.environ.get("FILE_API_CONNECT_TIMEOUT", 180))
 FILE_API_READ_TIMEOUT = float(os.environ.get("FILE_API_READ_TIMEOUT", 180))
+
+
+class FileInfo(BaseFileInfo):
+    """
+    Information about a file or directory in DataRobot File System.
+
+    Attributes
+    ----------
+    name:
+        The path of the file or directory. Does not include the protocol prefix.
+    size:
+        The size of the file in bytes. For directories, this is 0.
+    type:
+        The type of the item, either 'file' or 'directory'.
+    format:
+        The file format (e.g., 'csv', 'pdf') if the item is a file; None for directories.
+    created_at:
+        The file creation timestamp if the item is a file; None for directories.
+    catalog_id:
+        The catalog id of the file.
+    modified_at:
+        The modification timestamp of the file.
+    """
+
+    catalog_id: str
+    modified_at: Optional[float]
 
 
 def _keep_metadata_in_sync(
@@ -109,14 +135,14 @@ def _keep_metadata_in_sync(
 class DRFileSystem(DataRobotFileSystem):
     """DRFileSystem is fsspec implementation to interact with the DataRobot filesystem."""
 
-    _catalog_id: str | None = None
+    _catalog_id: str = ""
 
     def __init__(
         self,
         dr_client: dr.rest.RESTClientObject | None = None,
         catalog_id: str | None = None,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         super().__init__(*args, **kwargs)
         self._legacy_fs = LegacyDRFileSystem(dr_client, *args, **kwargs)
@@ -131,7 +157,7 @@ class DRFileSystem(DataRobotFileSystem):
             self.app_id = os.environ.get("APPLICATION_ID")
             if not self.app_id:
                 raise ValueError("APPLICATION_ID env variable is not set.")
-            self._catalog_id = None
+            self._catalog_id = ""
             self._initialize_catalog_id()
 
     def _initialize_catalog_id(self) -> None:
@@ -139,7 +165,7 @@ class DRFileSystem(DataRobotFileSystem):
         with self.client:
             catalog_stored = dr.KeyValue.find(
                 cast(str, self.app_id),
-                KeyValueEntityType.CUSTOM_APPLICATION,
+                DRKeyValueEntityType.CUSTOM_APPLICATION,
                 CATALOG_STORAGE_NAME,
             )
             if catalog_stored:
@@ -153,7 +179,7 @@ class DRFileSystem(DataRobotFileSystem):
             self._catalog_id = self.create_catalog_item_dir()
             dr.KeyValue.create(
                 entity_id=cast(str, self.app_id),
-                entity_type=KeyValueEntityType.CUSTOM_APPLICATION,
+                entity_type=DRKeyValueEntityType.CUSTOM_APPLICATION,
                 name=CATALOG_STORAGE_NAME,
                 category=dr.KeyValueCategory.ARTIFACT,
                 value_type=dr.KeyValueType.STRING,
@@ -183,28 +209,30 @@ class DRFileSystem(DataRobotFileSystem):
         path_without_protocol = self._strip_protocol(path)
         return self._catalog_id, path_without_protocol
 
-    def _format_path_details_for_files(
+    def _format_path_details_for_files(  # type: ignore[override]
         self, catalog_id: str, files: List[File], show_details: bool
-    ) -> Union[List[str], List[dict[str, Any]]]:
+    ) -> Union[List[str], List[FileInfo]]:
         """Format path details for a list of files. Files can represent both files and directories."""
         ret = super()._format_path_details_for_files(catalog_id, files, show_details)
         if show_details:
             for file in ret:
+                file = cast(FileInfo, file)
                 file["catalog_id"] = self._catalog_id
                 file["name"] = self._strip_catalog(file["name"])
-                file["modified_at"] = (
-                    file["created_at"].timestamp()
-                    if file["type"] != "directory"
-                    else None
-                )
-            return ret
-        return [self._strip_catalog(file_path) for file_path in ret]
+                if file["type"] != "directory" and file["created_at"] is not None:
+                    file["modified_at"] = file["created_at"].timestamp()
+                else:
+                    file["modified_at"] = None
+            return cast(List[FileInfo], ret)
+        return [self._strip_catalog(file_path) for file_path in ret]  # type: ignore[arg-type]
 
-    def _augment_path_details(self, detail: Dict[str, Any]) -> Dict[str, Any]:
+    def _augment_path_details(self, detail: BaseFileInfo) -> FileInfo:
         """Add fields to path details that might be missing to harmonize between new and legacy systems."""
-        back_up_modified_at = (
-            detail["created_at"].timestamp() if detail.get("created_at") else None
-        )
+        detail = cast(FileInfo, detail)
+        if detail["created_at"] is not None:
+            back_up_modified_at = detail["created_at"].timestamp()
+        else:
+            back_up_modified_at = None
         if detail["type"] == "directory":
             detail["catalog_id"] = detail.get("catalog_id", None)
             detail["format"] = detail.get("format", None)
@@ -220,12 +248,12 @@ class DRFileSystem(DataRobotFileSystem):
         detail["size"] = detail.get("size", 0)
         return detail
 
-    def ls(
+    def ls(  # type: ignore[override]
         self, path: str, detail: bool = True, **kwargs: Any
     ) -> Union[List[str], List[FileInfo]]:
         """List paths in the filesystem."""
-        new_paths = None
-        legacy_paths = None
+        new_paths: Optional[List[BaseFileInfo]] = None
+        legacy_paths: Optional[List[BaseFileInfo]] = None
 
         try:
             new_paths = super().ls(path, detail=True, **kwargs)
@@ -233,7 +261,9 @@ class DRFileSystem(DataRobotFileSystem):
             logger.debug("ls - No paths found in new fs.", extra={"path": path})
 
         try:
-            legacy_paths = self._legacy_fs.ls(path, detail=True, **kwargs)
+            legacy_paths = cast(
+                List[BaseFileInfo], self._legacy_fs.ls(path, detail=True, **kwargs)
+            )
         except FileNotFoundError:
             logger.debug("ls - No paths found in legacy fs.", extra={"path": path})
 
@@ -241,25 +271,28 @@ class DRFileSystem(DataRobotFileSystem):
             raise FileNotFoundError(f"Path {path} not found.")
 
         new_paths = new_paths or []
-        legacy_paths = legacy_paths or []
-        all_paths = {path["name"]: path for path in new_paths}
-        for path in legacy_paths:
-            name_if_dir = f"{path['name'].rstrip('/')}/"
-            if path["type"] == "directory" and name_if_dir not in all_paths:
+        legacy_paths = cast(List[BaseFileInfo], legacy_paths or [])
+        all_paths = {p["name"]: p for p in new_paths}
+        for legacy_path in legacy_paths:
+            name_if_dir = f"{legacy_path['name'].rstrip('/')}/"
+            if legacy_path["type"] == "directory" and name_if_dir not in all_paths:
                 logger.debug(
                     "ls - Found directory %s in legacy fs with no corresponding entry in new fs.",
                     name_if_dir,
                     extra={"path": name_if_dir},
                 )
-                path["name"] = name_if_dir
-                all_paths[name_if_dir] = path
-            elif path["type"] != "directory" and path["name"] not in all_paths:
+                legacy_path["name"] = name_if_dir
+                all_paths[name_if_dir] = legacy_path
+            elif (
+                legacy_path["type"] != "directory"
+                and legacy_path["name"] not in all_paths
+            ):
                 logger.debug(
                     "ls - Found file %s in legacy fs with no corresponding entry in new fs.",
-                    path["name"],
-                    extra={"path": path["name"]},
+                    legacy_path["name"],
+                    extra={"path": legacy_path["name"]},
                 )
-                all_paths[path["name"]] = path
+                all_paths[legacy_path["name"]] = legacy_path
 
         if not detail:
             return list(all_paths.keys())
@@ -277,9 +310,9 @@ class DRFileSystem(DataRobotFileSystem):
                 "created_at": None,
                 "catalog_id": self._catalog_id,
             }
-        return super().info(path, **kwargs)
+        return super().info(path, **kwargs)  # type: ignore[return-value]
 
-    def _open(
+    def _open(  # type: ignore[override]
         self, path: str, mode: str = "rb", **kwargs: Any
     ) -> Union[DataRobotFile, BinaryIO]:
         if mode == "rb":
@@ -304,7 +337,7 @@ class DRFileSystem(DataRobotFileSystem):
                 self._legacy_fs.rm_file(path)
             return super()._open(path, mode=mode, **kwargs)
 
-    def cp_file(self, path1: str, path2: str, **kwargs: Any):
+    def cp_file(self, path1: str, path2: str, **kwargs: Any) -> None:  # type: ignore[override]
         new_exists = (
             self.exists(path1) and self.info(path1)["catalog_id"] == self._catalog_id
         )
@@ -392,7 +425,7 @@ class DRFileSystem(DataRobotFileSystem):
                 else:
                     self._legacy_fs.rm_file(path_to_delete, **kwargs)
 
-    def rm_directory(self, path: str, **kwargs: Any) -> None:
+    def rm_directory(self, path: Union[str, List[str]], **kwargs: Any) -> None:
         super().rm_directory(path, **kwargs)
         legacy_paths = [path] if isinstance(path, str) else path
         for legacy_path in legacy_paths:
@@ -404,8 +437,8 @@ class DRFileSystem(DataRobotFileSystem):
 
     def mv(
         self,
-        path1: str,
-        path2: str,
+        path1: Union[str, List[str]],
+        path2: Union[str, List[str]],
         recursive: bool = False,
         maxdepth: Optional[int] = None,
         **kwargs: Any,
@@ -423,20 +456,22 @@ class DRFileSystem(DataRobotFileSystem):
         for _, details in self.find(path, withdirs=False, detail=True).items():
             if details.get("catalog_id") != self._catalog_id:
                 unmigrated_files.append(details)
-        return unmigrated_files
+        return unmigrated_files  # type: ignore[return-value]
 
-    def mkdir(self, path: str, create_parents: bool = True, **kwargs: Any) -> None:
+    def mkdir(self, path: str, create_parents: bool = True, **kwargs: Any) -> None:  # type: ignore[override]
         self._legacy_fs.mkdir(path, create_parents=create_parents, **kwargs)
 
-    def makedirs(self, path: str, exist_ok: bool = False, **kwargs: Any) -> None:
+    def makedirs(self, path: str, exist_ok: bool = False, **kwargs: Any) -> None:  # type: ignore[override]
         self._legacy_fs.makedirs(path, exist_ok=exist_ok, **kwargs)
 
-    def rmdir(self, path: str, **kwargs: Any) -> None:
+    def rmdir(self, path: str, **kwargs: Any) -> None:  # type: ignore[override]
         self._legacy_fs.rmdir(path, **kwargs)
 
-    def modified(self, path: str, **kwargs: Any) -> float:
+    def modified(self, path: str, **kwargs: Any) -> float:  # type: ignore[override]
         if self.exists(path):
-            return self.info(path)["created_at"].timestamp()
+            created_at = self.info(path)["created_at"]
+            if created_at:
+                return created_at.timestamp()
         return self._legacy_fs.modified(path)
 
 
