@@ -27,6 +27,7 @@ from typing import (
     Callable,
     Dict,
     List,
+    Optional,
     ParamSpec,
     Tuple,
     TypeVar,
@@ -164,9 +165,11 @@ class DRFileSystem(DataRobotFileSystem):
             )
 
     def _strip_catalog(self, path: str) -> str:
+        """Remove catalog prefix from path."""
         return path.removeprefix(f"{self._catalog_id}/")
 
     def unstrip_protocol(self, name: str) -> str:
+        """Prefix path with protocol and catalog id."""
         name = name.lstrip("/")
         if name.startswith(f"{self.protocol}://"):
             return f"{self.protocol}://{self._catalog_id}/{name.removeprefix(f'{self.protocol}://')}"
@@ -198,6 +201,7 @@ class DRFileSystem(DataRobotFileSystem):
         return [self._strip_catalog(file_path) for file_path in ret]
 
     def _augment_path_details(self, detail: Dict[str, Any]) -> Dict[str, Any]:
+        """Add fields to path details that might be missing to harmonize between new and legacy systems."""
         back_up_modified_at = (
             detail["created_at"].timestamp() if detail.get("created_at") else None
         )
@@ -219,17 +223,19 @@ class DRFileSystem(DataRobotFileSystem):
     def ls(
         self, path: str, detail: bool = True, **kwargs: Any
     ) -> Union[List[str], List[FileInfo]]:
+        """List paths in the filesystem."""
         new_paths = None
+        legacy_paths = None
+
         try:
             new_paths = super().ls(path, detail=True, **kwargs)
         except FileNotFoundError:
-            print("No new paths found")
+            logger.debug("ls - No paths found in new fs.", extra={"path": path})
 
-        legacy_paths = None
         try:
             legacy_paths = self._legacy_fs.ls(path, detail=True, **kwargs)
         except FileNotFoundError:
-            print("No legacy paths found")
+            logger.debug("ls - No paths found in legacy fs.", extra={"path": path})
 
         if new_paths is None and legacy_paths is None:
             raise FileNotFoundError(f"Path {path} not found.")
@@ -240,9 +246,19 @@ class DRFileSystem(DataRobotFileSystem):
         for path in legacy_paths:
             name_if_dir = f"{path['name'].rstrip('/')}/"
             if path["type"] == "directory" and name_if_dir not in all_paths:
+                logger.debug(
+                    "ls - Found directory %s in legacy fs with no corresponding entry in new fs.",
+                    name_if_dir,
+                    extra={"path": name_if_dir},
+                )
                 path["name"] = name_if_dir
                 all_paths[name_if_dir] = path
             elif path["type"] != "directory" and path["name"] not in all_paths:
+                logger.debug(
+                    "ls - Found file %s in legacy fs with no corresponding entry in new fs.",
+                    path["name"],
+                    extra={"path": path["name"]},
+                )
                 all_paths[path["name"]] = path
 
         if not detail:
@@ -272,9 +288,19 @@ class DRFileSystem(DataRobotFileSystem):
                 and self.info(path)["catalog_id"] == self._catalog_id
             ):
                 return super()._open(path, mode=mode, **kwargs)
+            logger.debug(
+                "open - File %s not found in new fs, using legacy fs.",
+                path,
+                extra={"path": path},
+            )
             return self._legacy_fs._open(path, mode=mode, **kwargs)
         else:
             if self._legacy_fs.exists(path) and self._legacy_fs.isfile(path):
+                logger.debug(
+                    "open - Existing file %s found in legacy fs, removing it.",
+                    path,
+                    extra={"path": path},
+                )
                 self._legacy_fs.rm_file(path)
             return super()._open(path, mode=mode, **kwargs)
 
@@ -287,6 +313,11 @@ class DRFileSystem(DataRobotFileSystem):
         if new_exists and self.isfile(path1):
             super().cp_file(path1, path2, **kwargs)
         elif legacy_exists and self._legacy_fs.isfile(path1):
+            logger.debug(
+                "cp_file - Moving legacy file %s from legacy fs to new fs before copy.",
+                path1,
+                extra={"path": path1},
+            )
             info = self._legacy_fs.info(path1)
             source_path = os.path.basename(path1.rstrip("/"))
             Files(info["catalog_id"], "", "", [], datetime.now(), "").copy(
@@ -306,6 +337,11 @@ class DRFileSystem(DataRobotFileSystem):
             for file_name, file_info in self._legacy_fs.find(
                 path1, withdirs=False, detail=True
             ).items():
+                logger.debug(
+                    "cp_file - Moving legacy file %s from legacy fs to new fs before copy.",
+                    file_name,
+                    extra={"path": file_name},
+                )
                 source_path = os.path.basename(file_name.rstrip("/"))
                 Files(file_info["catalog_id"], "", "", [], datetime.now(), "").copy(
                     source_path=source_path,
@@ -323,6 +359,11 @@ class DRFileSystem(DataRobotFileSystem):
             for file_name, file_info in self._legacy_fs.find(
                 path1, withdirs=False, detail=True
             ).items():
+                logger.debug(
+                    "cp_file - Moving legacy file %s from legacy fs to new fs before copy.",
+                    file_name,
+                    extra={"path": file_name},
+                )
                 source_path = os.path.basename(file_name.rstrip("/"))
                 Files(file_info["catalog_id"], "", "", [], datetime.now(), "").copy(
                     source_path=source_path,
@@ -361,14 +402,28 @@ class DRFileSystem(DataRobotFileSystem):
                 path_to_delete = legacy_path.rstrip("/")
                 self._legacy_fs.rm(path_to_delete, recursive=True, **kwargs)
 
-    def mv_file(self, path1: str, path2: str, **kwargs: Any) -> None:
-        try:
-            super().mv_file(path1, path2, **kwargs)
-        except Exception as e1:
-            try:
-                self._legacy_fs.mv(path1, path2)
-            except Exception as e2:
-                raise e1 from e2
+    def mv(
+        self,
+        path1: str,
+        path2: str,
+        recursive: bool = False,
+        maxdepth: Optional[int] = None,
+        **kwargs: Any,
+    ) -> None:
+        # Override definition to simply things and handle new/legacy system
+        self.copy(path1, path2, recursive=recursive, maxdepth=maxdepth, **kwargs)
+        self.rm(path1, recursive=recursive, maxdepth=maxdepth, **kwargs)
+
+    def list_unmigrated_files(self, path: str) -> List[FileInfo]:
+        """
+        List files that are not migrated to the new filesystem.
+        If all files are migrated, return an empty list, and it is safe to upgrade to the new filesystem.
+        """
+        unmigrated_files = []
+        for _, details in self.find(path, withdirs=False, detail=True).items():
+            if details.get("catalog_id") != self._catalog_id:
+                unmigrated_files.append(details)
+        return unmigrated_files
 
     def mkdir(self, path: str, create_parents: bool = True, **kwargs: Any) -> None:
         self._legacy_fs.mkdir(path, create_parents=create_parents, **kwargs)
