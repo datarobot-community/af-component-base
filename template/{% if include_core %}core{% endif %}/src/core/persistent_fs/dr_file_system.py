@@ -301,6 +301,7 @@ class DRFileSystem(DataRobotFileSystem):
         return list(map(self._augment_path_details, all_paths.values()))
 
     def info(self, path: str, **kwargs: Any) -> FileInfo:
+        """Get info for file or directory at path."""
         path_without_protocol = self._strip_protocol(path)
         if path_without_protocol == self.root_marker:
             return {
@@ -346,9 +347,10 @@ class DRFileSystem(DataRobotFileSystem):
                 path, mode=mode, overwrite_strategy=overwrite_strategy, **kwargs
             )
 
-    def open(
+    def open(  # type: ignore[override]
         self, path: str, mode: str = "rb", **kwargs: Any
     ) -> Union[DataRobotFile, BinaryIO]:
+        """Open file at path for reading or writing."""
         overwrite_strategy = kwargs.pop(
             "overwrite_strategy", self.default_overwrite_strategy
         )
@@ -356,9 +358,10 @@ class DRFileSystem(DataRobotFileSystem):
             path, mode=mode, overwrite_strategy=overwrite_strategy, **kwargs
         )
 
-    def put(
+    def put(  # type: ignore[override]
         self, lpath: Union[str, List[str]], rpath: Union[str, List[str]], **kwargs: Any
     ) -> None:
+        """Upload file from local path to remote path."""
         overwrite_strategy = kwargs.pop(
             "overwrite_strategy", self.default_overwrite_strategy
         )
@@ -367,6 +370,7 @@ class DRFileSystem(DataRobotFileSystem):
         )
 
     def cp_file(self, path1: str, path2: str, **kwargs: Any) -> None:  # type: ignore[override]
+        """Copy file from source path to destination path."""
         new_exists = (
             self.exists(path1) and self.info(path1)["catalog_id"] == self._catalog_id
         )
@@ -452,7 +456,8 @@ class DRFileSystem(DataRobotFileSystem):
         else:
             raise FileNotFoundError(f"File {path1} not found")
 
-    def cp_directory(self, path1: str, path2: str, **kwargs: Any) -> None:
+    def cp_directory(self, path1: str, path2: str, **kwargs: Any) -> None:  # type: ignore[override]
+        """Copy directory from source path to destination path."""
         overwrite_strategy = kwargs.pop(
             "overwrite_strategy", self.default_overwrite_strategy
         )
@@ -461,6 +466,7 @@ class DRFileSystem(DataRobotFileSystem):
         )
 
     def rm_file(self, path: Union[str, List[str]], **kwargs: Any) -> None:
+        """Remove file at path."""
         super().rm_file(path, **kwargs)
         # in new fs rm_file is always recursive, and also deletes directories
         # also supports deleting multiple paths at once, similar to rm (without globs)
@@ -474,6 +480,7 @@ class DRFileSystem(DataRobotFileSystem):
                     self._legacy_fs.rm_file(path_to_delete, **kwargs)
 
     def rm_directory(self, path: Union[str, List[str]], **kwargs: Any) -> None:
+        """Remove directory at path."""
         super().rm_directory(path, **kwargs)
         legacy_paths = [path] if isinstance(path, str) else path
         for legacy_path in legacy_paths:
@@ -491,6 +498,7 @@ class DRFileSystem(DataRobotFileSystem):
         maxdepth: Optional[int] = None,
         **kwargs: Any,
     ) -> None:
+        """Move file(s) or directory from source path to destination path."""
         # Override definition to simply things and handle new/legacy system
         self.copy(path1, path2, recursive=recursive, maxdepth=maxdepth, **kwargs)
         self.rm(path1, recursive=recursive, maxdepth=maxdepth, **kwargs)
@@ -507,15 +515,19 @@ class DRFileSystem(DataRobotFileSystem):
         return unmigrated_files  # type: ignore[return-value]
 
     def mkdir(self, path: str, create_parents: bool = True, **kwargs: Any) -> None:  # type: ignore[override]
+        """Create empty directory at path. Only persists directory in legacy filesystem."""
         self._legacy_fs.mkdir(path, create_parents=create_parents, **kwargs)
 
     def makedirs(self, path: str, exist_ok: bool = False, **kwargs: Any) -> None:  # type: ignore[override]
+        """Create directories at path. Only persists directories in legacy filesystem."""
         self._legacy_fs.makedirs(path, exist_ok=exist_ok, **kwargs)
 
     def rmdir(self, path: str, **kwargs: Any) -> None:  # type: ignore[override]
+        """Delete empty directory at path. Only affects legacy filesystem."""
         self._legacy_fs.rmdir(path, **kwargs)
 
     def modified(self, path: str, **kwargs: Any) -> float:  # type: ignore[override]
+        """Get the modification time of the file at path. Directory paths are not supported."""
         if self.exists(path):
             created_at = self.info(path)["created_at"]
             if created_at:

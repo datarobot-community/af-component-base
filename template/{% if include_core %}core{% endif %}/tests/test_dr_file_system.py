@@ -593,6 +593,18 @@ class TestDRFileSystem:
             assert legacy_fs.exists(f"{temp_dir}/file1.txt") is False
             assert fs.ls(temp_dir, detail=False) == [f"{temp_dir}/file1.txt"]
 
+            with tempfile.NamedTemporaryFile() as tmp_file:
+                tmp_file.write(b"tmp_file_new")
+                tmp_file.flush()
+                fs.put(tmp_file.name, f"{temp_dir}/file1.txt")
+                assert fs.cat(f"{temp_dir}/file1.txt") == b"tmp_file_new"
+                assert fs.ls(temp_dir, detail=False) == [f"{temp_dir}/file1.txt"]
+
+            with fs.open(f"{temp_dir}/file1.txt", "wb") as file_overwrite_stream:
+                file_overwrite_stream.write(b"tmp_file_new_2")
+            assert fs.cat(f"{temp_dir}/file1.txt") == b"tmp_file_new_2"
+            assert fs.ls(temp_dir, detail=False) == [f"{temp_dir}/file1.txt"]
+
     def test_download(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
         lfs = LocalFileSystem()
         with tempfile.TemporaryDirectory() as local_tmp_dir:
