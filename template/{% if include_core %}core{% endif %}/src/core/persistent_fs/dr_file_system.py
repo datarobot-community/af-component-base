@@ -141,6 +141,7 @@ class DRFileSystem(DataRobotFileSystem):
         self,
         dr_client: dr.rest.RESTClientObject | None = None,
         catalog_id: str | None = None,
+        default_overwrite_strategy: FilesOverwriteStrategy = FilesOverwriteStrategy.REPLACE,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -150,6 +151,7 @@ class DRFileSystem(DataRobotFileSystem):
             token=os.environ.get("DATAROBOT_API_TOKEN"),
             endpoint=os.environ.get("DATAROBOT_ENDPOINT"),
         )
+        self.default_overwrite_strategy = default_overwrite_strategy
         self.app_id: str | None = None
         if catalog_id:
             self._catalog_id = catalog_id
@@ -315,12 +317,17 @@ class DRFileSystem(DataRobotFileSystem):
     def _open(  # type: ignore[override]
         self, path: str, mode: str = "rb", **kwargs: Any
     ) -> Union[DataRobotFile, BinaryIO]:
+        overwrite_strategy = kwargs.pop(
+            "overwrite_strategy", self.default_overwrite_strategy
+        )
         if mode == "rb":
             if (
                 super().exists(path)
                 and self.info(path)["catalog_id"] == self._catalog_id
             ):
-                return super()._open(path, mode=mode, **kwargs)
+                return super()._open(
+                    path, mode=mode, overwrite_strategy=overwrite_strategy, **kwargs
+                )
             logger.debug(
                 "open - File %s not found in new fs, using legacy fs.",
                 path,
@@ -335,16 +342,23 @@ class DRFileSystem(DataRobotFileSystem):
                     extra={"path": path},
                 )
                 self._legacy_fs.rm_file(path)
-            return super()._open(path, mode=mode, **kwargs)
+            return super()._open(
+                path, mode=mode, overwrite_strategy=overwrite_strategy, **kwargs
+            )
 
     def cp_file(self, path1: str, path2: str, **kwargs: Any) -> None:  # type: ignore[override]
         new_exists = (
             self.exists(path1) and self.info(path1)["catalog_id"] == self._catalog_id
         )
         legacy_exists = self._legacy_fs.exists(path1)
+        overwrite_strategy = kwargs.pop(
+            "overwrite_strategy", self.default_overwrite_strategy
+        )
 
         if new_exists and self.isfile(path1):
-            super().cp_file(path1, path2, **kwargs)
+            super().cp_file(
+                path1, path2, overwrite_strategy=overwrite_strategy, **kwargs
+            )
         elif legacy_exists and self._legacy_fs.isfile(path1):
             logger.debug(
                 "cp_file - Moving legacy file %s from legacy fs to new fs before copy.",
@@ -360,7 +374,9 @@ class DRFileSystem(DataRobotFileSystem):
                 overwrite=FilesOverwriteStrategy.SKIP,
             )
             self._legacy_fs.rm_file(path1)
-            super().cp_file(path1, path2, **kwargs)
+            super().cp_file(
+                path1, path2, overwrite_strategy=overwrite_strategy, **kwargs
+            )
         elif (
             new_exists
             and legacy_exists
@@ -385,7 +401,9 @@ class DRFileSystem(DataRobotFileSystem):
                     overwrite=FilesOverwriteStrategy.SKIP,
                 )
             self._legacy_fs.rm(path1, recursive=True)
-            super().cp_file(path1, path2, **kwargs)
+            super().cp_file(
+                path1, path2, overwrite_strategy=overwrite_strategy, **kwargs
+            )
         elif new_exists and self.isdir(path1):
             super().cp_file(path1, path2, **kwargs)
         elif legacy_exists and self._legacy_fs.isdir(path1):
@@ -408,7 +426,9 @@ class DRFileSystem(DataRobotFileSystem):
                 )
                 self._legacy_fs.rm_file(file_name)
             self._legacy_fs.rm(path1, recursive=True)
-            super().cp_file(path1, path2, **kwargs)
+            super().cp_file(
+                path1, path2, overwrite_strategy=overwrite_strategy, **kwargs
+            )
         else:
             raise FileNotFoundError(f"File {path1} not found")
 
