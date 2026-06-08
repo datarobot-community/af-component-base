@@ -346,6 +346,26 @@ class DRFileSystem(DataRobotFileSystem):
                 path, mode=mode, overwrite_strategy=overwrite_strategy, **kwargs
             )
 
+    def open(
+        self, path: str, mode: str = "rb", **kwargs: Any
+    ) -> Union[DataRobotFile, BinaryIO]:
+        overwrite_strategy = kwargs.pop(
+            "overwrite_strategy", self.default_overwrite_strategy
+        )
+        return super().open(
+            path, mode=mode, overwrite_strategy=overwrite_strategy, **kwargs
+        )
+
+    def put(
+        self, lpath: Union[str, List[str]], rpath: Union[str, List[str]], **kwargs: Any
+    ) -> None:
+        overwrite_strategy = kwargs.pop(
+            "overwrite_strategy", self.default_overwrite_strategy
+        )
+        return super().put(
+            lpath, rpath, overwrite_strategy=overwrite_strategy, **kwargs
+        )
+
     def cp_file(self, path1: str, path2: str, **kwargs: Any) -> None:  # type: ignore[override]
         new_exists = (
             self.exists(path1) and self.info(path1)["catalog_id"] == self._catalog_id
@@ -431,6 +451,14 @@ class DRFileSystem(DataRobotFileSystem):
             )
         else:
             raise FileNotFoundError(f"File {path1} not found")
+
+    def cp_directory(self, path1: str, path2: str, **kwargs: Any) -> None:
+        overwrite_strategy = kwargs.pop(
+            "overwrite_strategy", self.default_overwrite_strategy
+        )
+        super().cp_directory(
+            path1, path2, overwrite_strategy=overwrite_strategy, **kwargs
+        )
 
     def rm_file(self, path: Union[str, List[str]], **kwargs: Any) -> None:
         super().rm_file(path, **kwargs)
