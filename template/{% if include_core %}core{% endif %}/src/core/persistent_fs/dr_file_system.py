@@ -336,16 +336,29 @@ class DRFileSystem(DataRobotFileSystem):
             )
             return self._legacy_fs._open(path, mode=mode, **kwargs)
         else:
-            if self._legacy_fs.exists(path) and self._legacy_fs.isfile(path):
+            has_legacy_file = self._legacy_fs.exists(path) and self._legacy_fs.isfile(
+                path
+            )
+            file_handle = super()._open(
+                path, mode=mode, overwrite_strategy=overwrite_strategy, **kwargs
+            )
+            original_upload_chunk = file_handle._upload_chunk
+
+            def upload_and_cleanup(final: bool = False) -> None:
+                original_upload_chunk(final=final)
+                if not has_legacy_file or not final:
+                    return
+
                 logger.debug(
                     "open - Existing file %s found in legacy fs, removing it.",
                     path,
                     extra={"path": path},
                 )
                 self._legacy_fs.rm_file(path)
-            return super()._open(
-                path, mode=mode, overwrite_strategy=overwrite_strategy, **kwargs
-            )
+
+            # monkey patch to only delete legacy file on new file upload completion.
+            file_handle._upload_chunk = upload_and_cleanup
+            return file_handle
 
     def open(  # type: ignore[override]
         self, path: str, mode: str = "rb", **kwargs: Any

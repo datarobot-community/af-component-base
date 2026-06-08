@@ -605,6 +605,24 @@ class TestDRFileSystem:
             assert fs.cat(f"{temp_dir}/file1.txt") == b"tmp_file_new_2"
             assert fs.ls(temp_dir, detail=False) == [f"{temp_dir}/file1.txt"]
 
+    def test_write_open_error_before_close(
+        self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem
+    ):
+        with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
+            legacy_fs.pipe_file(f"{temp_dir}/file1.txt", b"file1")
+            # If file write does not complete, the legacy file should not be removed.
+            with pytest.raises(ValueError):
+                file_overwrite_stream = fs.open(f"{temp_dir}/file1.txt", "wb")
+                file_overwrite_stream.write(b"file_new_error")
+                raise ValueError("test error")
+            assert legacy_fs.exists(f"{temp_dir}/file1.txt")
+            assert fs.info(f"{temp_dir}/file1.txt")["catalog_id"] != fs._catalog_id
+
+            with fs.open(f"{temp_dir}/file1.txt", "wb") as f:
+                f.write(b"file_new")
+            assert fs.cat(f"{temp_dir}/file1.txt") == b"file_new"
+            assert legacy_fs.exists(f"{temp_dir}/file1.txt") is False
+
     def test_download(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
         lfs = LocalFileSystem()
         with tempfile.TemporaryDirectory() as local_tmp_dir:
