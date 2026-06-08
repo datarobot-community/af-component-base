@@ -231,7 +231,7 @@ class DRFileSystem(DataRobotFileSystem):
     def _augment_path_details(self, detail: BaseFileInfo) -> FileInfo:
         """Add fields to path details that might be missing to harmonize between new and legacy systems."""
         detail = cast(FileInfo, detail)
-        if detail.get("created_at") is not None:
+        if "created_at" in detail and detail["created_at"] is not None:
             back_up_modified_at = detail["created_at"].timestamp()
         else:
             back_up_modified_at = None
