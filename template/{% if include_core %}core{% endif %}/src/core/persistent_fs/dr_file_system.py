@@ -199,10 +199,11 @@ class DRFileSystem(DataRobotFileSystem):
     def unstrip_protocol(self, name: str) -> str:
         """Prefix path with protocol and catalog id."""
         name = name.lstrip("/")
-        if name.startswith(f"{self.protocol}://"):
-            return f"{self.protocol}://{self._catalog_id}/{name.removeprefix(f'{self.protocol}://')}"
-        elif name.startswith(f"{self.protocol}://{self._catalog_id}/"):
+        if name.startswith(f"{self.protocol}://{self._catalog_id}/"):
             return f"{self.protocol}://{self._catalog_id}/{name.removeprefix(f'{self.protocol}://{self._catalog_id}/')}"
+        elif name.startswith(f"{self.protocol}://"):
+            return f"{self.protocol}://{self._catalog_id}/{name.removeprefix(f'{self.protocol}://')}"
+
         return f"{self.protocol}://{self._catalog_id}/{name}"
 
     def _split_path(self, path: str) -> Tuple[str, str]:
