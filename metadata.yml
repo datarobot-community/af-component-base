@@ -1,0 +1,5 @@
+display_name: "Base"
+description: "Base component required for all App Framework built apps."
+tags: []
+repeatable: null
+dependencies: []
