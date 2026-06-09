@@ -358,7 +358,7 @@ class DRFileSystem(DataRobotFileSystem):
                 return file_was_uploaded
 
             # monkey patch to only delete legacy file on new file upload completion.
-            file_handle._upload_chunk = upload_and_cleanup
+            file_handle._upload_chunk = upload_and_cleanup  # type: ignore[method-assign]
             return file_handle
 
     def open(  # type: ignore[override]
