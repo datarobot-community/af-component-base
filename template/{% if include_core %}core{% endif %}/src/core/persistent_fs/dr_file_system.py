@@ -201,6 +201,8 @@ class DRFileSystem(DataRobotFileSystem):
         name = name.lstrip("/")
         if name.startswith(f"{self.protocol}://"):
             return f"{self.protocol}://{self._catalog_id}/{name.removeprefix(f'{self.protocol}://')}"
+        elif name.startswith(f"{self.protocol}://{self._catalog_id}/"):
+            return f"{self.protocol}://{self._catalog_id}/{name.removeprefix(f'{self.protocol}://{self._catalog_id}/')}"
         return f"{self.protocol}://{self._catalog_id}/{name}"
 
     def _split_path(self, path: str) -> Tuple[str, str]:
