@@ -344,10 +344,10 @@ class DRFileSystem(DataRobotFileSystem):
             )
             original_upload_chunk = file_handle._upload_chunk
 
-            def upload_and_cleanup(final: bool = False) -> None:
-                original_upload_chunk(final=final)
-                if not has_legacy_file or not final:
-                    return
+            def upload_and_cleanup(final: bool = False) -> bool:
+                file_was_uploaded = original_upload_chunk(final=final)
+                if not has_legacy_file or not file_was_uploaded:
+                    return file_was_uploaded
 
                 logger.debug(
                     "open - Existing file %s found in legacy fs, removing it.",
@@ -355,6 +355,7 @@ class DRFileSystem(DataRobotFileSystem):
                     extra={"path": path},
                 )
                 self._legacy_fs.rm_file(path)
+                return file_was_uploaded
 
             # monkey patch to only delete legacy file on new file upload completion.
             file_handle._upload_chunk = upload_and_cleanup
