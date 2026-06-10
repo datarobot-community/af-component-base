@@ -3,3 +3,8 @@ description: "Base component required for all App Framework built apps."
 tags: []
 repeatable: null
 dependencies: []
+agent_guidance:
+  summary: >-
+    Required for every AF app — establishes the project skeleton, shared Taskfile, and
+    common configuration. Always include this; it will be auto-resolved as a dependency
+    of other components.
