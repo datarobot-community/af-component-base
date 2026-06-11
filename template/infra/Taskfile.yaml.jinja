@@ -104,7 +104,8 @@ tasks:
       - echo "🔨 Deploying the backend infrastructure.."
       - |
         export PULUMI_SKIP_UPDATE_CHECK=1 && {{ "{{.UV_CMD}}" }} run pulumi up -y \
-          --target "**datarobot:index/useCase:UseCase**"
+          --target "**datarobot:index/useCase:UseCase**"{% if 'fastapi_memory' in my_transitive_reverse_dependency_modules %} \
+          --target "**datarobot:index/memorySpace:MemorySpace**"{% endif %}
 
   install:
     desc: "🔧 Install dependencies"
