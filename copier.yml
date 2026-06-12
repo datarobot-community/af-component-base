@@ -27,5 +27,6 @@ include_core:
   default: true
   help: "Include the `core` library package for multi-component recipes?"
 
+_preserve_symlinks: true
 _subdirectory: template
 _answers_file: .datarobot/answers/base.yml
