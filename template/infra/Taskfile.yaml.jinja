@@ -92,7 +92,7 @@ tasks:
             dr plugin update xp
           else
             echo "⬇️ Installing DataRobot experimentation plugin 'xp'"
-            dr plugin install xp
+            dr plugin install xp || true
           fi
         else
           echo "ℹ️  Skipping experimentation plugin check (dr CLI not available)"
