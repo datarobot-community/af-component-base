@@ -12,7 +12,7 @@ name: Review Router
 
 on:
   pull_request_target:
-    types: [labeled, opened, closed]
+    types: [labeled, opened, closed, ready_for_review]
   pull_request_review:
     types: [submitted]
   pull_request_review_comment:
