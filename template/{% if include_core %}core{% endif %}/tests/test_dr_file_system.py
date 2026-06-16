@@ -1,13 +1,19 @@
 import os
 import tempfile
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
+from typing import List, cast
 
 import pytest
 from datarobot.fs import DataRobotFileSystem
 from fsspec.implementations.local import LocalFileSystem
 
-from core.persistent_fs.dr_file_system import DRFileSystem, LegacyDRFileSystem
+from core.persistent_fs.dr_file_system import (
+    DRFileSystem,
+    FileInfo,
+    LegacyDRFileSystem,
+)
 
 run_fs_tests = pytest.mark.skipif(
     not (
@@ -25,7 +31,9 @@ def _tmp_dir() -> str:
 
 
 @contextmanager
-def create_legacy_temp_dir(fs: DRFileSystem, legacy_fs: LegacyDRFileSystem) -> str:
+def create_legacy_temp_dir(
+    fs: DRFileSystem, legacy_fs: LegacyDRFileSystem
+) -> Iterator[str]:
     name = _tmp_dir()
     legacy_fs.mkdir(name)
     yield name
@@ -54,7 +62,7 @@ class TestDRFileSystem:
         fs: DRFileSystem,
         legacy_fs: LegacyDRFileSystem,
         dr_fs: DataRobotFileSystem,
-    ):
+    ) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             # root works
             assert f"{temp_dir}/" in fs.ls("", detail=False)
@@ -64,7 +72,7 @@ class TestDRFileSystem:
                 fs.ls(f"{temp_dir}/non-existent/")
 
             legacy_fs.mkdir(f"{temp_dir}/subdir")
-            subdirs = fs.ls(f"{temp_dir}", detail=True)
+            subdirs = cast(List[FileInfo], fs.ls(f"{temp_dir}", detail=True))
             assert subdirs[0]["name"] == f"{temp_dir}/subdir/"
             assert subdirs[0]["type"] == "directory"
             assert (
@@ -74,7 +82,7 @@ class TestDRFileSystem:
             # create files in new and old system simultaneously
             legacy_fs.pipe_file(f"{temp_dir}/test.txt", b"test")
             dr_fs.pipe_file(f"{fs._catalog_id}/{temp_dir}/test2.txt", b"test2")
-            fs.ls(f"{temp_dir}", detail=False) == [
+            assert fs.ls(f"{temp_dir}", detail=False) == [
                 f"{temp_dir}/subdir/",
                 f"{temp_dir}/test.txt",
                 f"{temp_dir}/test2.txt",
@@ -126,7 +134,7 @@ class TestDRFileSystem:
             assert override_dir["type"] == "directory"
             assert override_dir["format"] is None
 
-    def test_info_root(self, fs: DRFileSystem):
+    def test_info_root(self, fs: DRFileSystem) -> None:
         assert fs.info("") == {
             "name": "",
             "type": "directory",
@@ -138,31 +146,30 @@ class TestDRFileSystem:
         }
         assert fs.info("/") == fs.info("")
 
-    def test_modified(self, fs: DRFileSystem):
+    def test_modified(self, fs: DRFileSystem) -> None:
         # check modified on new system returns created_at
         name = _tmp_dir()
         fs.pipe_file(f"{name}/test.txt", b"test")
-        assert (
-            fs.modified(f"{name}/test.txt")
-            == fs.info(f"{name}/test.txt")["created_at"].timestamp()
-        )
+        created_at = fs.info(f"{name}/test.txt")["created_at"]
+        assert created_at is not None
+        assert fs.modified(f"{name}/test.txt") == created_at.timestamp()
         fs.rm(name, recursive=True)
 
-    def test_created_at(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_created_at(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem) -> None:
         # check old records have new created_at field
         file_name = f"test_{time.time()}.txt"
         legacy_fs.pipe_file(file_name, b"test")
         assert fs.info(file_name)["created_at"] is None
         legacy_fs.rm(file_name)
 
-    def test_du(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_du(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             fs.pipe_file(f"{temp_dir}/test.txt", b"test")
             legacy_fs.pipe_file(f"{temp_dir}/test.txt", b"sdkfhweuihskjfbweiuweh")
             legacy_fs.pipe_file(f"{temp_dir}/test2.txt", b"test2")
             assert fs.du(temp_dir, total=True) == 9
 
-    def test_mkdir(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_mkdir(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem) -> None:
         tmp = _tmp_dir()
         fs.mkdir(tmp)
         assert fs.exists(tmp)
@@ -171,7 +178,7 @@ class TestDRFileSystem:
         assert fs.exists(tmp) is False
         assert legacy_fs.exists(tmp) is False
 
-    def test_makedirs(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_makedirs(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem) -> None:
         tmp = _tmp_dir()
         tmp_subdir = f"{tmp}/subdir"
         fs.makedirs(tmp_subdir)
@@ -182,7 +189,9 @@ class TestDRFileSystem:
         assert fs.exists(tmp) is False
         assert legacy_fs.exists(tmp) is False
 
-    def test_find_glob_tree(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_find_glob_tree(
+        self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem
+    ) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             # Mixed bag: 5 files + directories created across both new and legacy systems
             fs.pipe_file(f"{temp_dir}/file1.txt", b"file1")
@@ -232,7 +241,7 @@ class TestDRFileSystem:
 
     def test_cp_file_file_to_file(
         self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem
-    ):
+    ) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             # legacy only, copy legacy to new, delete legacy
             legacy_fs.pipe_file(f"{temp_dir}/file1.txt", b"file1")
@@ -260,7 +269,9 @@ class TestDRFileSystem:
             assert fs.cat(f"{temp_dir}/file8.txt") == b"file7"
             assert legacy_fs.exists(f"{temp_dir}/file7.txt") is False
 
-    def test_cp_dir_to_dir(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_cp_dir_to_dir(
+        self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem
+    ) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             # legacy only
             legacy_fs.mkdir(f"{temp_dir}/subdir")
@@ -307,7 +318,9 @@ class TestDRFileSystem:
             assert legacy_fs.exists(f"{temp_dir}/subdir5/another_dir/") is False
             assert legacy_fs.exists(f"{temp_dir}/subdir6") is False
 
-    def test_cp_file_to_dir(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_cp_file_to_dir(
+        self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem
+    ) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             # copy new only to new
             fs.pipe_file(f"{temp_dir}/file1.txt", b"file1_new")
@@ -339,7 +352,9 @@ class TestDRFileSystem:
             assert legacy_fs.exists(f"{temp_dir}/file5.txt") is False
             assert legacy_fs.exists(f"{temp_dir}/dir2/file5.txt") is False
 
-    def test_cp_mv_overwrites(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_cp_mv_overwrites(
+        self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem
+    ) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             fs.pipe_file(f"{temp_dir}/file1.txt", b"file1_new")
             legacy_fs.pipe_file(f"{temp_dir}/file1.txt", b"file1")
@@ -362,7 +377,7 @@ class TestDRFileSystem:
             assert fs.cat(f"{temp_dir}/file3.txt") == b"file2_new_3"
             assert fs.ls(temp_dir, detail=False) == [f"{temp_dir}/file3.txt"]
 
-    def test_mv(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_mv(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             # new only
             fs.pipe_file(f"{temp_dir}/file1.txt", b"file1_new")
@@ -415,7 +430,7 @@ class TestDRFileSystem:
             assert legacy_fs.exists(f"{temp_dir}/dir6/subdir/") is False
             assert legacy_fs.exists(f"{temp_dir}/dir6/subdir/fileB.txt") is False
 
-    def test_remove(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_remove(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             # rm_file
             # new only
@@ -522,7 +537,7 @@ class TestDRFileSystem:
             fs.rm(f"{temp_dir}/non-existent.txt")
             fs.rm(f"{temp_dir}/non-existent/")
 
-    def test_cat(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_cat(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             fs.pipe_file(f"{temp_dir}/file1.txt", b"file1")  # new only
             fs.pipe_file(f"{temp_dir}/file2.csv", b"file2_new")  # both
@@ -536,7 +551,7 @@ class TestDRFileSystem:
             with pytest.raises(FileNotFoundError):
                 fs.cat(f"{temp_dir}/file4.txt")
 
-    def test_reads(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_reads(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             fs.pipe_file(f"{temp_dir}/file1.txt", b"file1_new")
             legacy_fs.pipe_file(f"{temp_dir}/file2.txt", b"file2")
@@ -560,7 +575,7 @@ class TestDRFileSystem:
             with pytest.raises(FileNotFoundError):
                 fs.open(f"{temp_dir}/file3.txt")
 
-    def test_writes(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_writes(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             fs.pipe_file(f"{temp_dir}/file1.txt", b"file1_new")
             legacy_fs.pipe_file(f"{temp_dir}/file1.txt", b"file1")
@@ -584,7 +599,7 @@ class TestDRFileSystem:
 
     def test_writes_overwrites_by_default(
         self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem
-    ):
+    ) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             legacy_fs.pipe_file(f"{temp_dir}/file1.txt", b"file1")
             fs.pipe_file(f"{temp_dir}/file1.txt", b"file1_new")
@@ -607,7 +622,7 @@ class TestDRFileSystem:
 
     def test_write_open_error_before_close(
         self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem
-    ):
+    ) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             legacy_fs.pipe_file(f"{temp_dir}/file1.txt", b"file1")
             # If file write does not complete, the legacy file should not be removed.
@@ -623,7 +638,7 @@ class TestDRFileSystem:
             assert fs.cat(f"{temp_dir}/file1.txt") == b"file_new"
             assert legacy_fs.exists(f"{temp_dir}/file1.txt") is False
 
-    def test_download(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_download(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem) -> None:
         lfs = LocalFileSystem()
         with tempfile.TemporaryDirectory() as local_tmp_dir:
             with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
@@ -655,7 +670,7 @@ class TestDRFileSystem:
                 with pytest.raises(FileNotFoundError):
                     fs.download(f"{temp_dir}/file3.txt", local_tmp_dir)
 
-    def test_mapper(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem):
+    def test_mapper(self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             fs.pipe_file(f"{temp_dir}/file1.txt", b"file1_new")
             legacy_fs.pipe_file(f"{temp_dir}/file1.txt", b"file1")
@@ -671,7 +686,7 @@ class TestDRFileSystem:
 
     def test_list_unmigrated_files(
         self, fs: DRFileSystem, legacy_fs: LegacyDRFileSystem
-    ):
+    ) -> None:
         with create_legacy_temp_dir(fs, legacy_fs) as temp_dir:
             fs.pipe_file(f"{temp_dir}/file1.txt", b"file1_new")
             fs.pipe_file(f"{temp_dir}/dir1/file2.txt", b"file2_new")

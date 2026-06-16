@@ -85,12 +85,12 @@ class FileInfo(BaseFileInfo):
     created_at:
         The file creation timestamp if the item is a file; None for directories.
     catalog_id:
-        The catalog id of the file.
+        The catalog id of the file; None for legacy directories.
     modified_at:
         The modification timestamp of the file.
     """
 
-    catalog_id: str
+    catalog_id: Optional[str]
     modified_at: Optional[float]
 
 
@@ -276,7 +276,7 @@ class DRFileSystem(DataRobotFileSystem):
             raise FileNotFoundError(f"Path {path} not found.")
 
         new_paths = new_paths or []
-        legacy_paths = cast(List[BaseFileInfo], legacy_paths or [])
+        legacy_paths = legacy_paths or []
         all_paths = {p["name"]: p for p in new_paths}
         for legacy_path in legacy_paths:
             name_if_dir = f"{legacy_path['name'].rstrip('/')}/"
