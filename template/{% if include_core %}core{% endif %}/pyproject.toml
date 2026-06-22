@@ -113,7 +113,6 @@ docstring-code-line-length = "dynamic"
 
 [tool.mypy]
 strict = true
-python_version = "3.11"
 plugins = "pydantic.mypy"
 exclude = """(?x)(
     output/ # exclude files starting with "output"
