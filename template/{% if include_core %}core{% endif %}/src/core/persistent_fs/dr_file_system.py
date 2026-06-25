@@ -376,8 +376,11 @@ class DRFileSystem(DataRobotFileSystem):
             "overwrite_strategy", self.default_overwrite_strategy
         )
         if mode == "rb":
-            info = self.info(path)
-            if info.get("catalog_id") == self._catalog_id:
+            try:
+                new_exists = self.info(path).get("catalog_id") == self._catalog_id
+            except FileNotFoundError:
+                new_exists = False
+            if new_exists:
                 return super()._open(
                     path, mode=mode, overwrite_strategy=overwrite_strategy, **kwargs
                 )
