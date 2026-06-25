@@ -37,9 +37,10 @@ from typing import (
 import datarobot as dr
 from datarobot.enums import FilesOverwriteStrategy
 from datarobot.enums import KeyValueEntityType as DRKeyValueEntityType
+from datarobot.errors import ClientError
 from datarobot.fs import DataRobotFile, DataRobotFileSystem
 from datarobot.fs.file_system import FileInfo as BaseFileInfo
-from datarobot.models.files import File, Files
+from datarobot.models.files import File, Files, FilesDetails
 from fsspec.spec import AbstractFileSystem
 
 from core.persistent_fs.kv_custom_app_implementattion import (
@@ -192,6 +193,56 @@ class DRFileSystem(DataRobotFileSystem):
                 self._catalog_id,
             )
 
+    def current_version_id(self) -> str | None:
+        """Return the catalog item's latest version id with a single request.
+
+        The catalog version advances every time a file is uploaded, so this is a
+        cheap change-detection signal: if the version is unchanged since a prior
+        download, the persisted files have not changed and a re-download can be
+        skipped. Returns None if the version cannot be determined.
+        """
+        with self.client:
+            try:
+                return FilesDetails.get(self._catalog_id).version_id
+            except ClientError:
+                logger.debug(
+                    "Could not fetch catalog version id.",
+                    extra={"catalog_id": self._catalog_id},
+                )
+                return None
+
+    def download_file(self, rpath: str, lpath: str) -> None:
+        """Download the latest version of a known file directly to ``lpath``.
+
+        ``DRFileSystem.get()`` resolves a path through fsspec's generic
+        machinery, which lists the parent directory and re-derives file info
+        several times (each doubled by a legacy-filesystem probe), then signs the
+        file and streams it from object storage. When the exact path is known and
+        the latest version is wanted, the Files API ``downloads`` endpoint streams
+        the bytes in a single request, skipping all of that.
+
+        If the file is not found in the new filesystem, this falls back to the
+        legacy filesystem so files that have not yet been migrated are still
+        served.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the file does not exist in either the new or legacy filesystem.
+        """
+        internal_path = self._strip_protocol(rpath)
+        files = self._get_files_wrapper_for_folder_id(self._catalog_id)
+        try:
+            with self._try_convert_to_fsspec_exception():
+                files.download(file_name=internal_path, file_path=lpath)
+        except FileNotFoundError:
+            logger.debug(
+                "download_file - File %s not found in new fs, using legacy fs.",
+                rpath,
+                extra={"path": rpath},
+            )
+            self._legacy_fs.get_file(rpath, lpath)
+
     def _strip_catalog(self, path: str) -> str:
         """Remove catalog prefix from path."""
         return path.removeprefix(f"{self._catalog_id}/")
@@ -325,10 +376,8 @@ class DRFileSystem(DataRobotFileSystem):
             "overwrite_strategy", self.default_overwrite_strategy
         )
         if mode == "rb":
-            if (
-                super().exists(path)
-                and self.info(path)["catalog_id"] == self._catalog_id
-            ):
+            info = self.info(path)
+            if info.get("catalog_id") == self._catalog_id:
                 return super()._open(
                     path, mode=mode, overwrite_strategy=overwrite_strategy, **kwargs
                 )
@@ -388,9 +437,10 @@ class DRFileSystem(DataRobotFileSystem):
 
     def cp_file(self, path1: str, path2: str, **kwargs: Any) -> None:  # type: ignore[override]
         """Copy file from source path to destination path."""
-        new_exists = (
-            self.exists(path1) and self.info(path1)["catalog_id"] == self._catalog_id
-        )
+        try:
+            new_exists = self.info(path1).get("catalog_id") == self._catalog_id
+        except FileNotFoundError:
+            new_exists = False
         legacy_exists = self._legacy_fs.exists(path1)
         overwrite_strategy = kwargs.pop(
             "overwrite_strategy", self.default_overwrite_strategy
