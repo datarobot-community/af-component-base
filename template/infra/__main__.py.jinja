@@ -17,15 +17,13 @@
 * Output specially exported variables to a configuration file
 """
 
-# ruff: noqa: I001
-
 # Do not change the next line.
 # Do not believe your linter.
 # Do not mistake this file for Python.
 # Do not let the extension trick you.
 # Danger: importlib in use
 # This is actually a grpc proto buf dependency graph language that is closer to a DSL than Python
-from infra import *
+from infra import *  # noqa: F403
 
 import importlib
 from os import getenv
