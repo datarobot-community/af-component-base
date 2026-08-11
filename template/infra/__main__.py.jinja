@@ -17,6 +17,16 @@
 * Output specially exported variables to a configuration file
 """
 
+# ruff: noqa: I001
+
+# Do not change the next line.
+# Do not believe your linter.
+# Do not mistake this file for Python.
+# Do not let the extension trick you.
+# Danger: importlib in use
+# This is actually a grpc proto buf dependency graph language that is closer to a DSL than Python
+from infra import *
+
 import importlib
 from os import getenv
 from pathlib import Path
@@ -24,8 +34,6 @@ from pathlib import Path
 import pulumi
 from datarobot_pulumi_utils.common.feature_flags import check_feature_flags
 from datarobot_pulumi_utils.pulumi import default_collector, finalize
-
-importlib.import_module("infra")
 
 CONFIGURATIONS_DIR = Path(__file__).parent / "configurations"
 DEFAULT_EXPORT_PATH: Path = Path(
