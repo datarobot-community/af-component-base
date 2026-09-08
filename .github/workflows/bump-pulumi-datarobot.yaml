@@ -1,0 +1,119 @@
+---
+name: Bump pulumi-datarobot
+
+# Opens a PR bumping the pinned pulumi-datarobot provider version. Driven by
+# the provider's release, not by polling: pulumi-datarobot's release.yml
+# dispatches `pulumi-datarobot-released` here once its SDK is on PyPI. See
+# scripts/bump_pulumi_datarobot.sh for the pins involved and the skip/fail
+# rules.
+#
+# The PR is opened with GITHUB_TOKEN, which by design does not trigger other
+# workflows -- so validate-template.yaml will NOT run on the resulting PR.
+# That's why this job runs `task validate` itself, before opening the PR: a
+# template that doesn't validate never becomes a PR, and this run's log is the
+# validation evidence a reviewer reads.
+
+on:
+  # Sent by the release job in datarobot-community/pulumi-datarobot, with the
+  # released version in client_payload.version. Note that repository_dispatch
+  # only ever runs the copy of this workflow on the default branch.
+  repository_dispatch:
+    types: [pulumi-datarobot-released]
+
+  # Manual runs: re-run a dispatch that failed, or backfill a missed release.
+  # Leave the version empty to bump to whatever is currently newest.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to bump to, e.g. 0.11.2 (empty = latest published)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# Never let two bump runs race to create the same branch (a dispatch plus a
+# manual run for the same release, say).
+concurrency:
+  group: bump-pulumi-datarobot
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    name: Bump pulumi-datarobot
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # Runs before the toolchain setup below so a dispatch that turns out to be
+      # a no-op costs one cheap step instead of a full environment build.
+      #
+      # The version comes from the dispatch payload, or from the manual input,
+      # or is empty -- in which case the script resolves the newest release
+      # itself. It is verified against PyPI and GitHub either way.
+      - name: Check the released version and apply the bump
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASED_VERSION: ${{ github.event.client_payload.version || github.event.inputs.version }}
+        run: scripts/bump_pulumi_datarobot.sh --check "$RELEASED_VERSION"
+
+      - name: Setup Python & uv
+        if: steps.check.outputs.should_bump == 'true'
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Go
+        if: steps.check.outputs.should_bump == 'true'
+        uses: actions/setup-go@v5
+
+      - name: Install yamlfmt
+        if: steps.check.outputs.should_bump == 'true'
+        run: go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+
+      - name: Install Task
+        if: steps.check.outputs.should_bump == 'true'
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dr CLI
+        if: steps.check.outputs.should_bump == 'true'
+        run: |
+          LATEST_TAG=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/datarobot-oss/cli/releases/latest | grep '"tag_name"' | cut -d '"' -f 4)
+          VERSION=${LATEST_TAG#v}
+          curl -fsSL "https://github.com/datarobot-oss/cli/releases/download/${LATEST_TAG}/dr_v${VERSION}_Linux_x86_64.tar.gz" -o /tmp/dr.tar.gz
+          tar -xzf /tmp/dr.tar.gz -C /tmp dr
+          sudo mv /tmp/dr /usr/local/bin/dr
+          dr --version
+
+      # The gate. Same command validate-template.yaml runs, against the bumped
+      # template. If the new provider version breaks the render or the rendered
+      # project's checks, the job fails here and no PR is opened.
+      - name: Validate the bumped template
+        if: steps.check.outputs.should_bump == 'true'
+        run: task validate
+
+      # `task validate` renders into mytemplate/ and mytemplate-no-core/, which
+      # are gitignored, but clean up anyway so nothing unexpected can be staged.
+      - name: Clean rendered output
+        if: steps.check.outputs.should_bump == 'true'
+        run: task clean
+
+      - name: Open the bump PR
+        if: steps.check.outputs.should_bump == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          scripts/bump_pulumi_datarobot.sh --open-pr \
+            "${{ steps.check.outputs.current }}" \
+            "${{ steps.check.outputs.target }}"
